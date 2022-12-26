@@ -1,37 +1,382 @@
-package Main;
+package utilities;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
-import Components.Neuron;
-
 public abstract class Utg 
 {	
+	public static String[][] ReadcsvFile(String FileName)
+	{
+		BufferedReader br = null;
+        String line = "";
+        String separator = ",";
+        List<List<String>> Input = new ArrayList<>();
+        try 
+        {
+            br = new BufferedReader(new FileReader(FileName));
+            line = br.readLine();
+            while (line != null & !line.contains("_")) 
+            {
+            	Input.add(Arrays.asList(line.split(separator)));
+            	line = br.readLine();
+            }
+        } 
+        catch (FileNotFoundException e) 
+        {
+            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            if (br != null)
+            {
+                try
+                {
+                    br.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        String[][] result = new String[Input.size()][];
+        for (int i = 0; i <= result.length - 1; i += 1)
+        {
+        	result[i] = new String[Input.get(i).size()];
+        	for (int j = 0; j <= result[i].length - 1; j += 1)
+        	{
+        		result[i][j] = Input.get(i).get(j);
+        	}
+        }
+        return result;
+	}
+	
+	public static int[] CalcProdVec(int Nlayers, int[] Nneurons, double[][] target)
+	{
+		int[] multvec = new int[Nlayers];
+		multvec[Nlayers - 1] = 1;
+		for (int i = Nlayers - 1; 1 <= i; i += -1)
+		{
+			multvec[i - 1] = multvec[i]*Nneurons[i];
+		}
+		return multvec;
+	}
+	
+	public static float Round(float num, int decimals)
+	{
+		return BigDecimal.valueOf(num).setScale(decimals, RoundingMode.HALF_EVEN).floatValue();
+	}
+	
+	public static float Round(double num, int decimals)
+	{
+		return BigDecimal.valueOf(num).setScale(decimals, RoundingMode.HALF_EVEN).floatValue();
+	}
+	
+	public static void SaveTextFile(String filename, List<Double> Var)
+	{
+		try
+		{	
+			FileWriter fileWriter = new FileWriter (filename + ".txt");
+			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
+			
+			for (int i = 0; i <= Var.size() - 1; i += 1)
+			{
+				bufferedWriter.write(i + "	" + Var.get(i));
+				bufferedWriter.newLine();	
+			}			
+			bufferedWriter.close();
+		}		
+		catch(IOException ex) 
+		{
+            System.out.println("Error writing to file '" + filename + "'");
+        }
+	}
+	public static int[][] AddElemToArrayUpTo(int[][] OriginalArray, int[] Elem, int maxlength)
+	{
+		if (OriginalArray == null)
+		{
+			return new int[][] {Elem};
+		}
+		else
+		{
+			if (OriginalArray.length < maxlength)
+			{
+			    int[][] NewArray = new int[OriginalArray.length + 1][];
+			    for (int i = 0; i <= OriginalArray.length - 1; i += 1)
+		        {
+		            NewArray[i] = OriginalArray[i];
+		        }
+		        NewArray[OriginalArray.length] = Elem;
+		        return NewArray;
+			}
+			else
+			{
+				int[][] NewArray = new int[OriginalArray.length][];
+			    for (int i = 0; i <= OriginalArray.length - 2; i += 1)
+		        {
+		            NewArray[i] = OriginalArray[i + 1];
+		        }
+		        NewArray[OriginalArray.length - 1] = Elem;
+		        return NewArray;
+			}
+		}
+	}
+	
+	public static double[] AddElemToArrayUpTo(double[] OriginalArray, double Elem, int maxlength)
+	{
+		if (OriginalArray == null)
+		{
+			return new double[] {Elem};
+		}
+		else
+		{
+			if (OriginalArray.length < maxlength)
+			{
+			    double[] NewArray = new double[OriginalArray.length + 1];
+			    for (int i = 0; i <= OriginalArray.length - 1; i += 1)
+		        {
+		            NewArray[i] = OriginalArray[i];
+		        }
+		        NewArray[OriginalArray.length] = Elem;
+		        return NewArray;
+			}
+			else
+			{
+				double[] NewArray = new double[OriginalArray.length];
+			    for (int i = 0; i <= OriginalArray.length - 2; i += 1)
+		        {
+		            NewArray[i] = OriginalArray[i + 1];
+		        }
+		        NewArray[OriginalArray.length - 1] = Elem;
+		        return NewArray;
+			}
+		}
+	}
+	
+	
+	public static double[][] AddElemToArrayUpTo(double[][] OriginalArray, double[] Elem, int maxlength)
+	{
+		if (OriginalArray == null)
+		{
+			return new double[][] {Elem};
+		}
+		else
+		{
+			if (OriginalArray.length < maxlength)
+			{
+			    double[][] NewArray = new double[OriginalArray.length + 1][];
+			    for (int i = 0; i <= OriginalArray.length - 1; i += 1)
+		        {
+		            NewArray[i] = OriginalArray[i];
+		        }
+		        NewArray[OriginalArray.length] = Elem;
+		        return NewArray;
+			}
+			else
+			{
+				double[][] NewArray = new double[OriginalArray.length][];
+			    for (int i = 0; i <= OriginalArray.length - 2; i += 1)
+		        {
+		            NewArray[i] = OriginalArray[i + 1];
+		        }
+		        NewArray[OriginalArray.length - 1] = Elem;
+		        return NewArray;
+			}
+		}
+	}
+	
+	public static JButton AddButton(ImageIcon Icon, int[] Alignment, int[] Size, Color color)
+	{
+		JButton NewButton = new JButton();
+		NewButton.setIcon(Icon);
+		NewButton.setVerticalAlignment(Alignment[0]);
+		NewButton.setHorizontalAlignment(Alignment[1]);
+		NewButton.setBackground(color);
+		NewButton.setPreferredSize(new Dimension(Size[0], Size[1]));	
+		return NewButton;
+	}
+	
+	public static JButton AddButton(String Text, int[] Alignment, int[] Size, Color color)
+	{
+		JButton NewButton = new JButton(Text);
+		NewButton.setVerticalAlignment(Alignment[0]);
+		NewButton.setHorizontalAlignment(Alignment[1]);
+		NewButton.setBackground(color);
+		NewButton.setPreferredSize(new Dimension(Size[0], Size[1]));	
+		return NewButton;
+	}
+
+	public static void SaveTextFile(String filename, double[][] Var)
+	{
+		try
+		{	
+			FileWriter fileWriter = new FileWriter (filename + ".txt");
+			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
+			
+			// Section 1
+			for (int i = 0; i <= Var.length - 1; i += 1)
+			{
+				for (int j = 0; j <= Var.length - 1; j += 1)
+				{
+					bufferedWriter.write(String.valueOf(Var[i][j]));
+				}
+				bufferedWriter.newLine();	
+			}
+			bufferedWriter.close();
+		}		
+		catch(IOException ex) 
+		{
+            System.out.println("Error writing to file '" + filename + "'");
+        }
+	}
+
+	public static void SaveTextFile(String filename, double[][][] Var)
+	{
+		try
+		{	
+			FileWriter fileWriter = new FileWriter (filename + ".txt");
+			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
+			
+			for (int l = 0; l <= Var.length - 1; l += 1)
+			{
+				bufferedWriter.write("layer " + l);
+				bufferedWriter.newLine();
+				for (int i = 0; i <= Var[l].length - 1; i += 1)
+				{
+					for (int j = 0; j <= Var[l][i].length - 1; j += 1)
+					{
+						bufferedWriter.write(String.valueOf(Var[l][i][j]) + " ");
+					}
+					bufferedWriter.newLine();	
+				}
+				bufferedWriter.newLine();
+			}
+			bufferedWriter.close();
+		}		
+		catch(IOException ex) 
+		{
+            System.out.println("Error writing to file '" + filename + "'");
+        }
+	}
+	public static int[] OffsetFromPos(String Alignment, int l, int h)
+	{
+		int[] offset = new int[2];
+		if (Alignment.equals("TopLeft"))
+		{
+			offset[0] = 0;
+			offset[1] = 0;
+		}
+		if (Alignment.equals("BotLeft"))
+		{
+			offset[0] = 0;
+			offset[1] = -h;
+		}
+		if (Alignment.equals("TopCenter"))
+		{
+			offset[0] = -l/2;
+			offset[1] = 0;
+		}
+		if (Alignment.equals("BotCenter"))
+		{
+			offset[0] = -l/2;
+			offset[1] = -h;
+		}
+		if (Alignment.equals("Center"))
+		{
+			offset[0] = -l/2;
+			offset[1] = -h/2;
+		}
+		if (Alignment.equals("LeftCenter"))
+		{
+			offset[0] = 0;
+			offset[1] = -h/2;
+		}
+		if (Alignment.equals("RightCenter"))
+		{
+			offset[0] = -l;
+			offset[1] = -h/2;
+		}
+		if (Alignment.equals("BotRight"))
+		{
+			offset[0] = -l;
+			offset[1] = -h;
+		}
+		if (Alignment.equals("TopRight"))
+		{
+			offset[0] = -l;
+			offset[1] = 0;
+		}
+		return offset;
+	}
+
+	public static int TextL(String Text, Font TextFont, int size, Graphics G)
+	{
+		FontMetrics metrics = G.getFontMetrics(TextFont);
+		return (int)(metrics.stringWidth(Text)*0.05*size);
+	}
+	
+	public static int TextH(int TextSize)
+	{
+		return (int)(0.8*TextSize);
+	}
+	
+	public static double[][] Transpose(double[][] OriginalArray)
+	{
+		double[][] NewArray = new double[OriginalArray[0].length][OriginalArray.length];
+		for (int i = 0; i <= NewArray.length - 1; i += 1)
+		{
+			for (int j = 0; j <= NewArray[i].length - 1; j += 1)
+			{
+				NewArray[i][j] = OriginalArray[j][i];
+			}
+		}
+		return NewArray;
+	}
+
+	public static double[] VecMatrixProd(double[] vector, double[][] matrix)
+	{
+		if (vector.length != matrix[0].length)
+		{
+			System.out.println("Attempted to multiply matrices of different sizes at UtilGeral -> MatrixProd");
+			System.out.println("Vector size: " + vector.length + " Matrix size : " + matrix[0].length);
+			return null;
+		}
+		else
+		{
+			double product[] = new double[matrix.length];
+			for (int i = 0; i <= matrix.length - 1; i += 1) 
+			{
+				for (int j = 0; j <= vector.length - 1; j += 1) 
+				{
+					product[i] += vector[j] * matrix[i][j];
+				}
+			}		
+			return product;
+		}
+	}
+	/*
 	public static Color[] ColorPalette(int Palette)
 	{
 		Color[] color = new Color[28];
@@ -131,27 +476,6 @@ public abstract class Utg
 		return color;
 	}
 	
-	public static JButton AddButton(ImageIcon Icon, int[] Alignment, int[] Size, Color color)
-	{
-		JButton NewButton = new JButton();
-		NewButton.setIcon(Icon);
-		NewButton.setVerticalAlignment(Alignment[0]);
-		NewButton.setHorizontalAlignment(Alignment[1]);
-		NewButton.setBackground(color);
-		NewButton.setPreferredSize(new Dimension(Size[0], Size[1]));	
-		return NewButton;
-	}
-	
-	public static JButton AddButton(String Text, int[] Alignment, int[] Size, Color color)
-	{
-		JButton NewButton = new JButton(Text);
-		NewButton.setVerticalAlignment(Alignment[0]);
-		NewButton.setHorizontalAlignment(Alignment[1]);
-		NewButton.setBackground(color);
-		NewButton.setPreferredSize(new Dimension(Size[0], Size[1]));	
-		return NewButton;
-	}
-	
 	public static String[][] ReadTextFile(String fileName)
 	{
 		String[][] Text = null; // [Cat][Pos]
@@ -226,80 +550,6 @@ public abstract class Utg
         return Input;
 	}
 	
-	public static void SaveTextFile(String filename, double[] Var)
-	{
-		try
-		{	
-			FileWriter fileWriter = new FileWriter (filename + ".txt");
-			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
-			
-			// Section 1
-			for (int i = 0; i <= Var.length - 1; i += 1)
-			{
-				bufferedWriter.write(i + "	" + Var[i]);
-				bufferedWriter.newLine();	
-			}			
-			bufferedWriter.close();
-		}		
-		catch(IOException ex) 
-		{
-            System.out.println("Error writing to file '" + filename + "'");
-        }
-	}
-
-	public static void SaveTextFile(String filename, double[][] Var)
-	{
-		try
-		{	
-			FileWriter fileWriter = new FileWriter (filename + ".txt");
-			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
-			
-			// Section 1
-			for (int i = 0; i <= Var.length - 1; i += 1)
-			{
-				for (int j = 0; j <= Var.length - 1; j += 1)
-				{
-					bufferedWriter.write(String.valueOf(Var[i][j]));
-				}
-				bufferedWriter.newLine();	
-			}
-			bufferedWriter.close();
-		}		
-		catch(IOException ex) 
-		{
-            System.out.println("Error writing to file '" + filename + "'");
-        }
-	}
-
-	public static void SaveTextFile(String filename, double[][][] Var)
-	{
-		try
-		{	
-			FileWriter fileWriter = new FileWriter (filename + ".txt");
-			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
-			
-			for (int l = 0; l <= Var.length - 1; l += 1)
-			{
-				bufferedWriter.write("layer " + l);
-				bufferedWriter.newLine();
-				for (int i = 0; i <= Var[l].length - 1; i += 1)
-				{
-					for (int j = 0; j <= Var[l][i].length - 1; j += 1)
-					{
-						bufferedWriter.write(String.valueOf(Var[l][i][j]) + " ");
-					}
-					bufferedWriter.newLine();	
-				}
-				bufferedWriter.newLine();
-			}
-			bufferedWriter.close();
-		}		
-		catch(IOException ex) 
-		{
-            System.out.println("Error writing to file '" + filename + "'");
-        }
-	}
-	
 	public static String[][] IncreaseArraySize(String[][] OriginalArray, int size)
 	{
 		if (OriginalArray == null)
@@ -368,68 +618,6 @@ public abstract class Utg
 			}
 			NewArray[OriginalArray.length] = NewElem;
 			return NewArray;
-		}
-	}
-	
-	public static int[][] AddElemToArrayUpTo(int[][] OriginalArray, int[] Elem, int maxlength)
-	{
-		if (OriginalArray == null)
-		{
-			return new int[][] {Elem};
-		}
-		else
-		{
-			if (OriginalArray.length < maxlength)
-			{
-			    int[][] NewArray = new int[OriginalArray.length + 1][];
-			    for (int i = 0; i <= OriginalArray.length - 1; i += 1)
-		        {
-		            NewArray[i] = OriginalArray[i];
-		        }
-		        NewArray[OriginalArray.length] = Elem;
-		        return NewArray;
-			}
-			else
-			{
-				int[][] NewArray = new int[OriginalArray.length][];
-			    for (int i = 0; i <= OriginalArray.length - 2; i += 1)
-		        {
-		            NewArray[i] = OriginalArray[i + 1];
-		        }
-		        NewArray[OriginalArray.length - 1] = Elem;
-		        return NewArray;
-			}
-		}
-	}
-	
-	public static double[][] AddElemToArrayUpTo(double[][] OriginalArray, double[] Elem, int maxlength)
-	{
-		if (OriginalArray == null)
-		{
-			return new double[][] {Elem};
-		}
-		else
-		{
-			if (OriginalArray.length < maxlength)
-			{
-			    double[][] NewArray = new double[OriginalArray.length + 1][];
-			    for (int i = 0; i <= OriginalArray.length - 1; i += 1)
-		        {
-		            NewArray[i] = OriginalArray[i];
-		        }
-		        NewArray[OriginalArray.length] = Elem;
-		        return NewArray;
-			}
-			else
-			{
-				double[][] NewArray = new double[OriginalArray.length][];
-			    for (int i = 0; i <= OriginalArray.length - 2; i += 1)
-		        {
-		            NewArray[i] = OriginalArray[i + 1];
-		        }
-		        NewArray[OriginalArray.length - 1] = Elem;
-		        return NewArray;
-			}
 		}
 	}
 
@@ -517,50 +705,6 @@ public abstract class Utg
 			}
         }
 		return MinId;
-	}
-	
-	public static double[] AddElemToArrayUpTo(double[] OriginalArray, double Elem, int maxlength)
-	{
-		if (OriginalArray == null)
-		{
-			return new double[] {Elem};
-		}
-		else
-		{
-			if (OriginalArray.length < maxlength)
-			{
-			    double[] NewArray = new double[OriginalArray.length + 1];
-			    for (int i = 0; i <= OriginalArray.length - 1; i += 1)
-		        {
-		            NewArray[i] = OriginalArray[i];
-		        }
-		        NewArray[OriginalArray.length] = Elem;
-		        return NewArray;
-			}
-			else
-			{
-				double[] NewArray = new double[OriginalArray.length];
-			    for (int i = 0; i <= OriginalArray.length - 2; i += 1)
-		        {
-		            NewArray[i] = OriginalArray[i + 1];
-		        }
-		        NewArray[OriginalArray.length - 1] = Elem;
-		        return NewArray;
-			}
-		}
-	}
-	
-	public static double[][] Transpose(double[][] OriginalArray)
-	{
-		double[][] NewArray = new double[OriginalArray[0].length][OriginalArray.length];
-		for (int i = 0; i <= NewArray.length - 1; i += 1)
-		{
-			for (int j = 0; j <= NewArray[i].length - 1; j += 1)
-			{
-				NewArray[i][j] = OriginalArray[j][i];
-			}
-		}
-		return NewArray;
 	}
 	
 	public static double[][][] AddMatrix(double[][][] Array1, double[][][] Array2)
@@ -651,15 +795,6 @@ public abstract class Utg
 		}
 	}	
 
-	public static float Round(float num, int decimals)
-	{
-		return BigDecimal.valueOf(num).setScale(decimals, RoundingMode.HALF_EVEN).floatValue();
-	}
-	
-	public static float Round(double num, int decimals)
-	{
-		return BigDecimal.valueOf(num).setScale(decimals, RoundingMode.HALF_EVEN).floatValue();
-	}
 
 	public static Neuron[] AddElem(Neuron[] OriginalArray, Neuron NewElem)
 	{
@@ -678,17 +813,6 @@ public abstract class Utg
 			return NewArray;
 		}
 	}
-
-	public static int TextL(String Text, Font TextFont, int size, Graphics G)
-	{
-		FontMetrics metrics = G.getFontMetrics(TextFont);
-		return (int)(metrics.stringWidth(Text)*0.05*size);
-	}
-	
-	public static int TextH(int TextSize)
-	{
-		return (int)(0.8*TextSize);
-	}
 	
 	public static double[] ScaledVector(double[] vector, double range, double amp)
 	{
@@ -701,90 +825,8 @@ public abstract class Utg
 		}
 		return ScaledVector;
 	}
-
-	public static double[] VecMatrixProd(double[] vector, double[][] matrix)
-	{
-		if (vector.length != matrix[0].length)
-		{
-			System.out.println("Attempted to multiply matrices of different sizes at UtilGeral -> MatrixProd");
-			System.out.println("Vector size: " + vector.length + " Matrix size : " + matrix[0].length);
-			return null;
-		}
-		else
-		{
-			double product[] = new double[matrix.length];
-			for (int i = 0; i <= matrix.length - 1; i += 1) 
-			{
-				for (int j = 0; j <= vector.length - 1; j += 1) 
-				{
-					product[i] += vector[j] * matrix[i][j];
-				}
-			}		
-			return product;
-		}
-	}
 	
-	public static int[] CalcProdVec(int Nlayers, int[] Nneurons, double[][] target)
-	{
-		int[] multvec = new int[Nlayers];
-		multvec[Nlayers - 1] = 1;
-		for (int i = Nlayers - 1; 1 <= i; i += -1)
-		{
-			multvec[i - 1] = multvec[i]*Nneurons[i];
-		}
-		return multvec;
-	}
 
-	public static int[] OffsetFromPos(String Alignment, int l, int h)
-	{
-		int[] offset = new int[2];
-		if (Alignment.equals("TopLeft"))
-		{
-			offset[0] = 0;
-			offset[1] = 0;
-		}
-		if (Alignment.equals("BotLeft"))
-		{
-			offset[0] = 0;
-			offset[1] = -h;
-		}
-		if (Alignment.equals("TopCenter"))
-		{
-			offset[0] = -l/2;
-			offset[1] = 0;
-		}
-		if (Alignment.equals("BotCenter"))
-		{
-			offset[0] = -l/2;
-			offset[1] = -h;
-		}
-		if (Alignment.equals("Center"))
-		{
-			offset[0] = -l/2;
-			offset[1] = -h/2;
-		}
-		if (Alignment.equals("LeftCenter"))
-		{
-			offset[0] = 0;
-			offset[1] = -h/2;
-		}
-		if (Alignment.equals("RightCenter"))
-		{
-			offset[0] = -l;
-			offset[1] = -h/2;
-		}
-		if (Alignment.equals("BotRight"))
-		{
-			offset[0] = -l;
-			offset[1] = -h;
-		}
-		if (Alignment.equals("TopRight"))
-		{
-			offset[0] = -l;
-			offset[1] = 0;
-		}
-		return offset;
-	}
 	
 	public static double[][] MatrixProd(double[][] matrixA, double[][] matrixB)
 	{
@@ -1007,16 +1049,16 @@ public abstract class Utg
 		if (Language.equals("P"))
 		{
 			Cats[0] = "* *";
-			Cats[1] = "* Bestiário *";
+			Cats[1] = "* Bestiï¿½rio *";
 			Cats[2] = "* Novo jogo *";
 			Cats[3] = "* Tutorial *";
 			Cats[4] = "* Classes *";
 			Cats[5] = "* ProClasses *";
 			Cats[6] = "* Atributos *";
-			Cats[7] = "* Estatísticas do jogador *";
+			Cats[7] = "* Estatï¿½sticas do jogador *";
 			Cats[8] = "* Propriedades dos atributos especiais *";
 			Cats[9] = "* Coleta *";
-			Cats[10] = "* Vitória *";
+			Cats[10] = "* Vitï¿½ria *";
 			Cats[11] = "* Equipamentos *";
 			Cats[12] = "* Doutor *";
 			Cats[13] = "* Vendedor de equipamentos *";
@@ -1040,33 +1082,33 @@ public abstract class Utg
 			Cats[31] = "* Pterodactile *";
 			Cats[32] = "* Nomes dos continentes *";
 			Cats[33] = "* Mensagem das placas *";
-			Cats[34] = "* Menu de personalização *";
+			Cats[34] = "* Menu de personalizaï¿½ï¿½o *";
 			Cats[35] = "* Menu de quest *";
-			Cats[36] = "* Menu de opções *";
+			Cats[36] = "* Menu de opï¿½ï¿½es *";
 			Cats[37] = "* Menu de dicas *";
-			Cats[38] = "* Dimensões *";
+			Cats[38] = "* Dimensï¿½es *";
 			Cats[39] = "* Cores *";
 			Cats[40] = "* Janela do jogador *";
-			Cats[41] = "* Cidadão 0 *";
-			Cats[42] = "* Cidadão 1 *";
-			Cats[43] = "* Cidadão 2 *";
-			Cats[44] = "* Cidadão 3 *";
-			Cats[45] = "* Cidadão 4 *";
-			Cats[46] = "* Cidadão 5 *";
-			Cats[47] = "* Cidadão 6 *";
-			Cats[48] = "* Cidadão 7 *";
-			Cats[49] = "* Cidadão 8 *";
-			Cats[50] = "* Cidadão 9 *";
-			Cats[51] = "* Cidadão 10 *";
-			Cats[52] = "* Cidadão 11 *";
-			Cats[53] = "* Cidadão 12 *";
-			Cats[54] = "* Cidadão 13 *";
-			Cats[55] = "* Cidadão 14 *";
-			Cats[56] = "* Cidadão 15 *";
-			Cats[57] = "* Cidadão 16 *";
-			Cats[58] = "* Cidadão 17 *";
-			Cats[59] = "* Cidadão 18 *";
-			Cats[60] = "* Cidadão 19 *";
+			Cats[41] = "* Cidadï¿½o 0 *";
+			Cats[42] = "* Cidadï¿½o 1 *";
+			Cats[43] = "* Cidadï¿½o 2 *";
+			Cats[44] = "* Cidadï¿½o 3 *";
+			Cats[45] = "* Cidadï¿½o 4 *";
+			Cats[46] = "* Cidadï¿½o 5 *";
+			Cats[47] = "* Cidadï¿½o 6 *";
+			Cats[48] = "* Cidadï¿½o 7 *";
+			Cats[49] = "* Cidadï¿½o 8 *";
+			Cats[50] = "* Cidadï¿½o 9 *";
+			Cats[51] = "* Cidadï¿½o 10 *";
+			Cats[52] = "* Cidadï¿½o 11 *";
+			Cats[53] = "* Cidadï¿½o 12 *";
+			Cats[54] = "* Cidadï¿½o 13 *";
+			Cats[55] = "* Cidadï¿½o 14 *";
+			Cats[56] = "* Cidadï¿½o 15 *";
+			Cats[57] = "* Cidadï¿½o 16 *";
+			Cats[58] = "* Cidadï¿½o 17 *";
+			Cats[59] = "* Cidadï¿½o 18 *";
+			Cats[60] = "* Cidadï¿½o 19 *";
 			Cats[61] = "* Barra de habilidades *";
 			Cats[62] = "* Navegador 2*";
 			for (int i = 0; i <= AllText.length - 1; i += 1)
@@ -1641,4 +1683,5 @@ public abstract class Utg
 		}
 		System.out.println();
 	}
-}
+*/
+	}

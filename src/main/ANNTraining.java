@@ -1,8 +1,11 @@
-package Main;
+package main;
 
-public class ANNTraining
+import utilities.Utg;
+import utilities.Uts;
+
+public abstract class ANNTraining
 {
-	public double[][] ForwardPropagation(double[] input, int[] Nneurons, double[][][] weight, double[][] bias, boolean ApplyBias)
+	public static double[][] ForwardPropagation(double[] input, int[] Nneurons, double[][][] weight, double[][] bias, boolean ApplyBias)
 	{
 		int Nlayers = Nneurons.length;
 		double[][] neuronvalue = new double[Nlayers][];
@@ -22,7 +25,7 @@ public class ANNTraining
 		return neuronvalue;
 	}
 
-	public double[][][] backpropagation(int inp, int[] Nneurons, double[][] neuronvalue, double[][][] weight, double[][] target, int[] multvec)
+	public static double[][][] backpropagation(int inp, int[] Nneurons, double[][] neuronvalue, double[][][] weight, double[][] target, int[] multvec)
 	{
 		int Nlayers = Nneurons.length;
 		double[][][] Dweight = new double[Nlayers - 1][][];
@@ -51,7 +54,7 @@ public class ANNTraining
 							for (int MapID = 1; MapID <= Map.length - 1; MapID += 1)
 							{
 								double Dsig = Uts.Dact(neuronvalue[layer + MapID][Map[Map.length - MapID - 1]]);
-								double W = weight[layer + MapID - 1][Map[Map.length - MapID - 1]][Map[Map.length - MapID]];	// lWif está registrado como lWfi
+								double W = weight[layer + MapID - 1][Map[Map.length - MapID - 1]][Map[Map.length - MapID]];	// lWif estï¿½ registrado como lWfi
 								//System.out.println("path: " + path + " prod_"+ wi + "" + wf + ": " + Dsig + " * " + W);
 								ProdD = ProdD * Dsig * W;
 							}
@@ -76,7 +79,7 @@ public class ANNTraining
 		return Dweight;
 	}
 	
-	public double[][][] UpdateWeights(int[] Nneurons, double Lrate, double[][][] weight, double[][][] Dweight)
+	public static double[][][] UpdateWeights(int[] Nneurons, double Lrate, double[][][] weight, double[][][] Dweight)
 	{
 		int Nlayers = Nneurons.length;
 		for (int layer = 0; layer <= Nlayers - 2; layer += 1)

@@ -1,4 +1,4 @@
-package Main;
+package main;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -10,6 +10,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import utilities.Utg;
 
 public class MainANN extends JFrame
 {

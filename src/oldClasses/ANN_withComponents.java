@@ -1,4 +1,4 @@
-package Main;
+package oldClasses;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -10,12 +10,14 @@ import java.util.Arrays;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import Components.Neuron;
-import Graphics.DrawFunctions;
+import graphics.DrawFunctions;
+import utilities.Utg;
+import utilities.Uts;
 
 public class ANN_withComponents extends JPanel implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
+	/*
 	private Timer timer;		// Main timer of the ANN
 	private Neuron[][] neuron;	// neurons [layer][id from top to bottom]
 	
@@ -125,25 +127,25 @@ public class ANN_withComponents extends JPanel implements ActionListener
 				id += 1;
 			}
 		}
-		/*for (int l = 0; l <= Nlayers - 2; l += 1)
-		{
-			for (int n = 0; n <= Nneurons[l] - 1; n += 1)
-			{
-				if (l == 0)
-				{
-					neuron[l][n].setweight(new double[] {0.1*n, 0.2*n});
-				}
-				else if (l == 1)
-				{
-					neuron[l][n].setweight(new double[] {0.3*n, 0.4*n});
-				}
-			}
-		}*/
-		/*Dbias = new double[Nlayers][];
-		for (int layer = 0; layer <= Nlayers - 1; layer += 1)
-		{
-			Dbias[layer] = new double[Nneurons[layer]];
-		}*/
+		//for (int l = 0; l <= Nlayers - 2; l += 1)
+		//{
+		//	for (int n = 0; n <= Nneurons[l] - 1; n += 1)
+		//	{
+		//		if (l == 0)
+		//		{
+		//			neuron[l][n].setweight(new double[] {0.1*n, 0.2*n});
+		//		}
+		//		else if (l == 1)
+		//		{
+		//			neuron[l][n].setweight(new double[] {0.3*n, 0.4*n});
+		//		}
+		//	}
+		//}
+		//Dbias = new double[Nlayers][];
+		//for (int layer = 0; layer <= Nlayers - 1; layer += 1)
+		//{
+		//	Dbias[layer] = new double[Nneurons[layer]];
+		//}
 		output = new double[target.length][target[0].length];
 		//Dbias = new double[Nlayers - 1][];
 	}
@@ -346,17 +348,17 @@ public class ANN_withComponents extends JPanel implements ActionListener
 		}		
 	}
 	
-	/*public void UpdateBiases(int Nlayers, int[] Nneurons, Neuron[][] neuron, double Lrate, double[][][] Dweight)
-	{
-		for (int layer = 0; layer <= Nlayers - 2; layer += 1)
-		{
-			for (int ni = 0; ni <= Nneurons[layer] - 1; ni += 1)
-			{	
-				double NewBias = neuron[layer][ni].getbias() - Lrate * Dbias[layer][ni];
-				neuron[layer][ni].setbias(NewBias);		
-			}
-		}		
-	}*/
+	//public void UpdateBiases(int Nlayers, int[] Nneurons, Neuron[][] neuron, double Lrate, double[][][] Dweight)
+	//{
+	//	for (int layer = 0; layer <= Nlayers - 2; layer += 1)
+	//	{
+	//		for (int ni = 0; ni <= Nneurons[layer] - 1; ni += 1)
+	//		{	
+	//			double NewBias = neuron[layer][ni].getbias() - Lrate * Dbias[layer][ni];
+	//			neuron[layer][ni].setbias(NewBias);		
+	//		}
+	//	}		
+	//}
 	
 	public double[][] outputs(double[][] input, int Nlayers, int[] Nneurons, Neuron[][] neuron, double[][][] PrevWeight)
 	{
@@ -420,11 +422,12 @@ public class ANN_withComponents extends JPanel implements ActionListener
 	public void paintComponent(Graphics g)
 	{
         super.paintComponent(g);
-        DF = new DrawFunctions(g);
+        //DF = new DrawFunctions(g);
         DrawStuff();
         Toolkit.getDefaultToolkit().sync();
         g.dispose();  
     }
+    */
 	
 	@Override
 	public void actionPerformed(ActionEvent e) 
@@ -432,4 +435,5 @@ public class ANN_withComponents extends JPanel implements ActionListener
 		// TODO Auto-generated method stub
 		
 	}
+	
 }

@@ -1,4 +1,4 @@
-package Main;
+package utilities;
 
 import java.awt.Color;
 import java.awt.Image;
@@ -6,10 +6,54 @@ import java.util.Arrays;
 
 import javax.swing.ImageIcon;
 
-import Components.Neuron;
+import oldClasses.Neuron;
 
 public abstract class Uts 
 {
+	public static void PrintWeightsAndNeurons(double[][] neuronvalue, double[][][] weight)
+	{
+		System.out.println();
+		System.out.println("*** Neurï¿½nios e pesos ***");
+		System.out.println("neurons: " + Arrays.deepToString(neuronvalue));
+		System.out.println("weights: " + Arrays.deepToString(weight));
+		System.out.println();
+	}
+
+	public static void PrintANN(double[][] neuronvalue, double[][][] weight, double[][][] Dweight, double[][] output, double[][] target, double errorperc)
+	{
+		System.out.println();
+		System.out.println("*** Parï¿½metros da rede neural ***");
+		System.out.println("neurï¿½nios: " + Arrays.deepToString(neuronvalue));
+		System.out.println("pesos: " + Arrays.deepToString(weight));
+		System.out.println("Dpesos: " + Arrays.deepToString(Dweight));
+		System.out.println("resultados: " + Arrays.deepToString(output));
+		System.out.println("targets: " + Arrays.deepToString(target));
+		System.out.println("erro: " + errorperc + " %");
+		System.out.println();
+		System.out.println();
+	}
+
+	public static double errorperc(double[][] input, int Nlayers, int[] Nneurons, double[][] output, double[][] target, double[][][] weight, double[][] bias)
+	{
+		double error = 0;		
+		for (int t = 0; t <= target.length - 1; t += 1)
+		{	
+			for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
+			{
+				if (target[t][n] != 0)
+				{
+					error += Math.abs((target[t][n] - output[t][n]) / target[t][n]);
+				}
+				else
+				{
+					error += Math.abs((target[t][n] - output[t][n]) / 1);
+				}
+			}		
+		}
+		error = 100 * error / (target.length * Nneurons[Nlayers - 1]);
+		return error;
+	}
+	
 	public static double[] VecMatrixProdWithBias(double[] vector, double[][] matrix, double[] bias)
 	{
 		if (vector.length != matrix[0].length)
@@ -33,24 +77,6 @@ public abstract class Uts
 			}		
 			return product;
 		}
-	}
-
-	public static double[] ImagePixels(String FilePath)
-	{
-		Image image = new ImageIcon(FilePath).getImage();
-		int ImageL = (image.getWidth(null)), ImageH = (image.getHeight(null));	// dimensions of the image in pixels
-		double[] input = new double[ImageL * ImageH * 3];
-		for (int i = 0; i <= ImageL - 1; i += 3)
-		{
-			for (int j = 0; j <= ImageH - 1; j += 3)
-			{
-				Color PixelColor = Utg.GetPixelColor(Utg.toBufferedImage(image), new int[] {i, j});
-				input[i * ImageH + j] = PixelColor.getRed() / 255.0;
-				input[i * ImageH + j + 1] = PixelColor.getGreen() / 255.0;
-				input[i * ImageH + j + 2] = PixelColor.getBlue() / 255.0;
-			}
-		}
-		return input;
 	}
 	
 	public static double dEdy(int Nlayers, int inp, int n, double[][] target, double[][] neuronvalue)
@@ -78,26 +104,24 @@ public abstract class Uts
 		}
 		return Map;
 	}
+	/*
 
-	public static double errorperc(double[][] input, int Nlayers, int[] Nneurons, double[][] output, double[][] target, double[][][] weight, double[][] bias)
+	public static double[] ImagePixels(String FilePath)
 	{
-		double error = 0;		
-		for (int t = 0; t <= target.length - 1; t += 1)
-		{	
-			for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
+		Image image = new ImageIcon(FilePath).getImage();
+		int ImageL = (image.getWidth(null)), ImageH = (image.getHeight(null));	// dimensions of the image in pixels
+		double[] input = new double[ImageL * ImageH * 3];
+		for (int i = 0; i <= ImageL - 1; i += 3)
+		{
+			for (int j = 0; j <= ImageH - 1; j += 3)
 			{
-				if (target[t][n] != 0)
-				{
-					error += Math.abs((target[t][n] - output[t][n]) / target[t][n]);
-				}
-				else
-				{
-					error += Math.abs((target[t][n] - output[t][n]) / 1);
-				}
-			}		
+				Color PixelColor = Utg.GetPixelColor(Utg.toBufferedImage(image), new int[] {i, j});
+				input[i * ImageH + j] = PixelColor.getRed() / 255.0;
+				input[i * ImageH + j + 1] = PixelColor.getGreen() / 255.0;
+				input[i * ImageH + j + 2] = PixelColor.getBlue() / 255.0;
+			}
 		}
-		error = 100 * error / (target.length * Nneurons[Nlayers - 1]);
-		return error;
+		return input;
 	}
 	
 	public static double[] errorpoints(double[][] input, int Nlayers, int[] Nneurons, double[][] output, double[][] target, double[][][] weight, double[][] bias)
@@ -152,14 +176,6 @@ public abstract class Uts
 		return Weight;
 	}	
 
-	public static void PrintWeightsAndNeurons(double[][] neuronvalue, double[][][] weight)
-	{
-		System.out.println();
-		System.out.println("*** Neurônios e pesos ***");
-		System.out.println("neurons: " + Arrays.deepToString(neuronvalue));
-		System.out.println("weights: " + Arrays.deepToString(weight));
-		System.out.println();
-	}
 
 	public static void PrintWeights(int Nlayers, int[] Nneurons, Neuron[][] neuron)
 	{
@@ -186,18 +202,5 @@ public abstract class Uts
 			System.out.println();
 		}
 	}
-
-	public static void PrintANN(double[][] neuronvalue, double[][][] weight, double[][][] Dweight, double[][] output, double[][] target, double errorperc)
-	{
-		System.out.println();
-		System.out.println("*** Parâmetros da rede neural ***");
-		System.out.println("neurônios: " + Arrays.deepToString(neuronvalue));
-		System.out.println("pesos: " + Arrays.deepToString(weight));
-		System.out.println("Dpesos: " + Arrays.deepToString(Dweight));
-		System.out.println("resultados: " + Arrays.deepToString(output));
-		System.out.println("targets: " + Arrays.deepToString(target));
-		System.out.println("erro: " + errorperc + " %");
-		System.out.println();
-		System.out.println();
-	}
+	*/
 }
