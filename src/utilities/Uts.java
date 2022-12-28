@@ -1,19 +1,13 @@
 package utilities;
 
-import java.awt.Color;
-import java.awt.Image;
 import java.util.Arrays;
-
-import javax.swing.ImageIcon;
-
-import oldClasses.Neuron;
 
 public abstract class Uts 
 {
 	public static void PrintWeightsAndNeurons(double[][] neuronvalue, double[][][] weight)
 	{
 		System.out.println();
-		System.out.println("*** Neurï¿½nios e pesos ***");
+		System.out.println("*** Neurônios e pesos ***");
 		System.out.println("neurons: " + Arrays.deepToString(neuronvalue));
 		System.out.println("weights: " + Arrays.deepToString(weight));
 		System.out.println();
@@ -22,8 +16,8 @@ public abstract class Uts
 	public static void PrintANN(double[][] neuronvalue, double[][][] weight, double[][][] Dweight, double[][] output, double[][] target, double errorperc)
 	{
 		System.out.println();
-		System.out.println("*** Parï¿½metros da rede neural ***");
-		System.out.println("neurï¿½nios: " + Arrays.deepToString(neuronvalue));
+		System.out.println("*** Parâmetros da rede neural ***");
+		System.out.println("neurônios: " + Arrays.deepToString(neuronvalue));
 		System.out.println("pesos: " + Arrays.deepToString(weight));
 		System.out.println("Dpesos: " + Arrays.deepToString(Dweight));
 		System.out.println("resultados: " + Arrays.deepToString(output));
@@ -33,12 +27,53 @@ public abstract class Uts
 		System.out.println();
 	}
 
-	public static double errorperc(double[][] input, int Nlayers, int[] Nneurons, double[][] output, double[][] target, double[][][] weight, double[][] bias)
+	public static double[] calcError(double[][] output, double[][] target)
 	{
-		double error = 0;		
+		double[] error = new double[output.length] ;
 		for (int t = 0; t <= target.length - 1; t += 1)
 		{	
-			for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
+			if ((target[t][0] + output[t][0]) != 0)
+			{
+				error[t] = Math.abs((target[t][0] - output[t][0]) / (target[t][0] + output[t][0]));
+			}
+			else
+			{
+				error[t] = 0 ;
+			}
+		}
+		
+		return error;
+	}
+
+	public static double errorperc2(double[][] output, double[][] target)
+	{
+		double error = 0;
+		int numberOutput = output[0].length ;
+		for (int t = 0; t <= target.length - 1; t += 1)
+		{	
+			for (int n = 0; n <= numberOutput - 1; n += 1)
+			{
+				if ((output[t][n] + target[t][n]) != 0)
+				{
+					error += Math.abs((target[t][n] - output[t][n]) / (output[t][n] + target[t][n]));
+				}
+				else
+				{
+					error += 0;
+				}
+			}		
+		}
+		error = error / (target.length * numberOutput);
+		return error;
+	}
+
+	public static double errorperc(double[][] output, double[][] target)
+	{
+		double error = 0;
+		int numberOutput = output[0].length ;
+		for (int t = 0; t <= target.length - 1; t += 1)
+		{	
+			for (int n = 0; n <= numberOutput - 1; n += 1)
 			{
 				if (target[t][n] != 0)
 				{
@@ -50,7 +85,7 @@ public abstract class Uts
 				}
 			}		
 		}
-		error = 100 * error / (target.length * Nneurons[Nlayers - 1]);
+		error = 100 * error / (target.length * numberOutput);
 		return error;
 	}
 	

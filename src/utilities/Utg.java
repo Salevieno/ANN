@@ -20,8 +20,30 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
+import org.json.simple.parser.JSONParser;
+
 public abstract class Utg 
 {	
+	public static void SaveTextFile(String filename, List<Double> Var)
+	{
+		try
+		{	
+			FileWriter fileWriter = new FileWriter (filename + ".txt");
+			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
+			
+			for (int i = 0; i <= Var.size() - 1; i += 1)
+			{
+				bufferedWriter.write(i + "	" + Var.get(i));
+				bufferedWriter.newLine();	
+			}			
+			bufferedWriter.close();
+		}		
+		catch(IOException ex) 
+		{
+            System.out.println("Error writing to file '" + filename + "'");
+        }
+	}
+	
 	public static String[][] ReadcsvFile(String FileName)
 	{
 		BufferedReader br = null;
@@ -73,6 +95,26 @@ public abstract class Utg
         return result;
 	}
 	
+	public static Object ReadJson(String filePath)
+	{
+		JSONParser parser = new JSONParser();
+        try
+        {
+            Object jsonData = parser.parse(new FileReader(filePath));
+            return jsonData ;
+        }
+        catch(FileNotFoundException fe)
+        {
+            fe.printStackTrace();
+            return null ;
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            return null ;
+        }
+	}
+	
 	public static int[] CalcProdVec(int Nlayers, int[] Nneurons, double[][] target)
 	{
 		int[] multvec = new int[Nlayers];
@@ -94,25 +136,6 @@ public abstract class Utg
 		return BigDecimal.valueOf(num).setScale(decimals, RoundingMode.HALF_EVEN).floatValue();
 	}
 	
-	public static void SaveTextFile(String filename, List<Double> Var)
-	{
-		try
-		{	
-			FileWriter fileWriter = new FileWriter (filename + ".txt");
-			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
-			
-			for (int i = 0; i <= Var.size() - 1; i += 1)
-			{
-				bufferedWriter.write(i + "	" + Var.get(i));
-				bufferedWriter.newLine();	
-			}			
-			bufferedWriter.close();
-		}		
-		catch(IOException ex) 
-		{
-            System.out.println("Error writing to file '" + filename + "'");
-        }
-	}
 	public static int[][] AddElemToArrayUpTo(int[][] OriginalArray, int[] Elem, int maxlength)
 	{
 		if (OriginalArray == null)
@@ -174,8 +197,7 @@ public abstract class Utg
 			}
 		}
 	}
-	
-	
+		
 	public static double[][] AddElemToArrayUpTo(double[][] OriginalArray, double[] Elem, int maxlength)
 	{
 		if (OriginalArray == null)
@@ -280,6 +302,7 @@ public abstract class Utg
             System.out.println("Error writing to file '" + filename + "'");
         }
 	}
+	
 	public static int[] OffsetFromPos(String Alignment, int l, int h)
 	{
 		int[] offset = new int[2];
@@ -376,6 +399,12 @@ public abstract class Utg
 			return product;
 		}
 	}
+	
+	
+	
+	
+	
+	
 	/*
 	public static Color[] ColorPalette(int Palette)
 	{

@@ -4,13 +4,18 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.Timer;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import graphics.DrawFunctions;
 import utilities.Utg;
@@ -20,32 +25,43 @@ public class ANN extends JPanel implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
 	private Timer timer;
+	
+	private static final Color[] COLOR_PALETTE = new Color[]
+								{
+										new Color(63, 40, 231),
+										new Color(137, 249, 204),
+										new Color(11, 11, 11),
+										new Color(245, 117, 170),
+										new Color(241, 199, 128),
+										new Color(101, 131, 246),
+										new Color(76, 131, 42)
+								};
 
-	private int iter; // number of the current iteration
-	private int Niter; // maximum number of iterations
-	private int[] Nneurons; // number of neurons in each layer
-	private int Nlayers; // number of layers
-	private double Lrate; // learning rate
-	private double[][] input; // input data
-	private double[][] target; // target data
-	private double[][] output; // ANN current outputs
+	private int iter; 			// number of the current iteration
+	private int Niter; 			// maximum number of iterations
+	private int[] Nneurons;	 	// number of neurons in each layer
+	private int Nlayers; 		// number of layers
+	private double Lrate; 		// learning rate
+	private double[][] input; 	// input data
+	private double[][] target; 	// target data
+	private double[][] output; 	// ANN current outputs
 	private double[][] neuronvalue; // value of each neuron (after applying the activation function)
-	private double[][][] Weight; // weights
-	private double[][][] Dweight; // Delta weight, change in weight during the back propagation. Dw[Layer][Index
-									// of origin neuron][Index of desination neuron]
-	private double[][] Bias; // biases
-	private double error; // current error
-	private double derror; // current change in error
-	private double errortol; // minimum error (stop if lower)
-	private double derrortol; // minimum variation in error between iterations (stop if lower)
-	private int[] multvec; // product of the number of neurons in each layer, starts from output
+	private double[][][] Weight; 	// weights
+	private double[][][] Dweight; 	// Delta weight, change in weight during the back propagation. Dw[Layer][Index of origin neuron][Index of desination neuron]
+	private double[][] Bias; 	// biases
+	private double error; 		// current error
+	private double derror; 		// current change in error
+	private double errortol; 	// minimum error (stop if lower)
+	private double derrortol; 	// minimum variation in error between iterations (stop if lower)
+	private int[] multvec; 		// product of the number of neurons in each layer, starts from output
 
-	private boolean RunTraining = true, ShowANN = true, ShowGraphs = true;
-	private boolean ApplyBias = false, AdaptativeLrate = true;
-	private List<Double> SaveError = new ArrayList<>();
-	private double[] PlotError = null;
-	private Color[] ColorPalette;
-	//private DrawFunctions DF;
+	private boolean RunTraining ;
+	private boolean ShowANN ;
+	private boolean ShowGraphs ;
+	private boolean ApplyBias ;
+	private boolean AdaptativeLrate ;
+	private List<Double> SaveError ;
+	private double[] PlotError ;
 
 	public ANN(Dimension panelDimension)
 	{
@@ -53,59 +69,37 @@ public class ANN extends JPanel implements ActionListener
 		this.setPreferredSize(panelDimension);
 		this.setVisible(true);
 		
+		RunTraining = true;
+		ShowANN = true;
+		ShowGraphs = true;
+		ApplyBias = false;
+		AdaptativeLrate = true;
+		SaveError = new ArrayList<>();
+		PlotError = null;
+		
 		initialize();
 
 		timer = new Timer(0, this);
 		timer.start();
 	}
-
+	
 	public void initialize()
 	{
 		// getting parameters file data
-		String[][] ParametersData = Utg.ReadcsvFile("ANNparameters.txt");
-		Niter = Integer.parseInt(ParametersData[1][0]);
-		Nneurons = new int[ParametersData[2].length + 2];
-		Nlayers = ParametersData[2].length + 2;
-		for (int layer = 1; layer <= ParametersData[2].length; layer += 1)
+		JSONObject parametersData = (JSONObject) Utg.ReadJson("Parameters.json") ;
+		Niter = (int) (long) parametersData.get("NumberMaxIterations") ;
+		JSONArray numberNeuronsData = (JSONArray) parametersData.get("NumberNeurons") ;
+		Nneurons = new int[numberNeuronsData.size() + 2];
+		Nlayers = numberNeuronsData.size() + 2;
+		for (int layer = 1; layer <= numberNeuronsData.size(); layer += 1)
 		{
-			Nneurons[layer] = Integer.parseInt(ParametersData[2][layer - 1]);
+			Nneurons[layer] = (int) (long) numberNeuronsData.get(layer - 1);
 		}
-		Lrate = Double.parseDouble(ParametersData[3][0]);
-		derrortol = Double.parseDouble(ParametersData[4][0]);
-		errortol = Double.parseDouble(ParametersData[5][0]);
+		Lrate = (double) parametersData.get("InitialLearningRate") ;
+		derrortol = (double) parametersData.get("ErrorVariationTolerance") ;
+		errortol = (double) parametersData.get("ErrorTotalTolerance") ;
 		error = errortol + 0.01;
 		derror = derrortol + 1;
-
-		// initializing color palette
-		ColorPalette = new Color[28];
-		ColorPalette[0] = new Color(61, 240, 226);		// Sky, crystal, menu 1, menu ornaments, player window, quest requirements, bestiary windows, knight
-		ColorPalette[1] = new Color(235, 38, 226);	// Mage, petal, pet 1, herb, exp, magic floor, shopping text
-		ColorPalette[2] = new Color(234, 237, 27);	// Archer, satiation, fire element
-		ColorPalette[3] = new Color(122, 236, 67);		// Animal, pet 0, grass, plant element, selected text, poison
-		ColorPalette[4] = new Color(164, 155, 147);		// Thief, metal, rock, wall, unavailable stuff, sign window, player att window 1
-		ColorPalette[5] = new Color(63, 40, 231);		// ocean, text
-		ColorPalette[6] = new Color(236, 44, 44);		// berry, blood, selected bag item, life, level, crit
-		ColorPalette[7] = new Color(241, 233, 225);		// Elemental NPC color, neutral and light elements, intro windows, choices menu, ok button, player eye
-		ColorPalette[8] = new Color(137, 249, 204);	// snow land, air and snow elements, part of window gradient backgrounds
-		ColorPalette[9] = new Color(11, 11, 11);		// Contour, attack animation
-		ColorPalette[10] = new Color(167, 28, 70);	// Lava, volcano
-		ColorPalette[11] = new Color(228, 89, 80); 
-		ColorPalette[12] = new Color(245, 117, 170);	// Player legs, herb contour
-		ColorPalette[13] = new Color(43, 45, 99);	// Player shoes
-		ColorPalette[14] = new Color(28, 162, 208);	// Player shirt, player arm
-		ColorPalette[15] = new Color(219, 251, 137);	// Player head (skin)
-		ColorPalette[16] = new Color(41, 88, 66);	// grass contour color, player hair
-		ColorPalette[17] = new Color(241, 199, 128);
-		ColorPalette[18] = new Color(171, 195, 49);	// pet 2 and 3, map, gold color, shopping menu, chest reward animation
-		ColorPalette[19] = new Color(143, 90, 52);	// Soil, wood, bag menu, stalactite, player window, pterodactile
-		ColorPalette[20] = new Color(242, 176, 63);	// Sand, menu 0, menu 2
-		ColorPalette[21] = new Color(247, 224, 143);
-		ColorPalette[22] = new Color(101, 131, 246);
-		ColorPalette[23] = new Color(141, 31, 159);	// Bag, shopping and crafting items text
-		ColorPalette[24] = new Color(48, 99, 97);	// 
-		ColorPalette[25] = new Color(76, 131, 42);	// 
-		ColorPalette[26] = new Color(242, 91, 168);	// 
-		ColorPalette[27] = new Color(105, 50, 50);	// 
 		
 		// getting input and target files data
 		String[][] InputData = Utg.ReadcsvFile("input.txt");
@@ -194,25 +188,26 @@ public class ANN extends JPanel implements ActionListener
 			 * iteration) However, the current method seems to perform better, converging in
 			 * less iterations
 			 */
-			double preverror = Utg.Round(Uts.errorperc(input, Nlayers, Nneurons, output, target, Weight, Bias), 2) / 100;
+			double preverror = Utg.Round(Uts.errorperc(output, target), 2) / 100;
 			for (int in = 0; in <= input.length - 1; in += 1)
 			{
-				neuronvalue = ANNTraining.ForwardPropagation(input[in], Nneurons, Weight, Bias, ApplyBias);
-				Dweight = ANNTraining.backpropagation(in, Nneurons, neuronvalue, Weight, target, multvec);
-				Weight = ANNTraining.UpdateWeights(Nneurons, Lrate, Weight, Dweight);
-				for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1) {
+				neuronvalue = Training.ForwardPropagation(input[in], Nneurons, Weight, Bias, ApplyBias);
+				Dweight = Training.backpropagation(in, Nneurons, neuronvalue, Weight, target, multvec);
+				Weight = Training.UpdateWeights(Nneurons, Lrate, Weight, Dweight);
+				for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
+				{
 					output[in][n] = neuronvalue[Nlayers - 1][n];
 				}
 			}
 
-			error = Utg.Round(Uts.errorperc(input, Nlayers, Nneurons, output, target, Weight, Bias), 2) / 100;
+			error = Utg.Round(Uts.errorperc(output, target), 2) / 100;
 			if (AdaptativeLrate)
 			{
 				Lrate = Math.max(Math.min(Lrate + error / 100.0, 0.5), 0.05);
 			}
 			if (iter % 1 == 0)
 			{
-				System.out.println("iter: " + (iter + 1) + " erro mï¿½dio: " + Utg.Round(100 * error, 2) + "%");
+				//System.out.println("iter: " + (iter + 1) + " erro médio: " + Utg.Round(100 * error, 2) + "%");
 				Utg.SaveTextFile("Weights", Weight);
 			}
 			derror = Math.abs(error - preverror);
@@ -233,14 +228,14 @@ public class ANN extends JPanel implements ActionListener
 		{
 			for (int in = 0; in <= input.length - 1; in += 1)
 			{
-				ANNTraining.ForwardPropagation(input[in], Nneurons, Weight, Bias, ApplyBias);
+				Training.ForwardPropagation(input[in], Nneurons, Weight, Bias, ApplyBias);
 				output[in] = new double[Nneurons[Nlayers - 1]];
 				for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
 				{
 					output[in][n] = neuronvalue[Nlayers - 1][n];
 				}
 			}
-			double errorperc = Utg.Round(Uts.errorperc(input, Nlayers, Nneurons, output, target, Weight, Bias), 2);
+			double errorperc = Utg.Round(Uts.errorperc(output, target), 2);
 			Uts.PrintANN(neuronvalue, Weight, Dweight, output, target, errorperc);
 			Utg.SaveTextFile("Error", SaveError);
 		}
@@ -252,16 +247,16 @@ public class ANN extends JPanel implements ActionListener
 		int[] NGraphs = new int[] { 1, 1 };
 		int[][] GraphPos = new int[NGraphs[0] * NGraphs[1]][2];
 
-		DrawFunctions.DrawMenu(new int[] { 200, 100 }, "Center", 300, 100, 2, new Color[] { ColorPalette[5], ColorPalette[8] }, ColorPalette[9]); // ANN info menu
-		DrawFunctions.DrawANNInfo(new int[] { 60, 70 }, iter, Nneurons, Uts.errorperc(input, Nlayers, Nneurons, output, target, Weight, Bias), ApplyBias, ColorPalette[9]);
+		DrawFunctions.DrawMenu(new Point( 200, 100 ), "Center", 300, 100, 2, new Color[] { COLOR_PALETTE[0], COLOR_PALETTE[1] }, COLOR_PALETTE[2]); // ANN info menu
+		DrawFunctions.DrawANNInfo(new Point( 60, 70 ), iter, Nneurons, Uts.errorperc(output, target), ApplyBias, COLOR_PALETTE[2]);
 		if (ShowANN)
 		{
-			DrawFunctions.DrawMenu(new int[] { 350, 300 }, "Center", 500, 200, 2, new Color[] { ColorPalette[5], ColorPalette[17] }, ColorPalette[9]); // ANN menu
-			DrawFunctions.DrawANN(new int[] { 100, 200 }, new int[] { 500, 200 }, Nneurons, neuronvalue, Weight, true, ColorPalette[22]);
+			DrawFunctions.DrawMenu(new Point( 350, 300 ), "Center", 500, 200, 2, new Color[] { COLOR_PALETTE[0], COLOR_PALETTE[4] }, COLOR_PALETTE[2]); // ANN menu
+			DrawFunctions.DrawANN(new Point( 100, 200 ), new int[] { 500, 200 }, Nneurons, neuronvalue, Weight, true, COLOR_PALETTE[5]);
 		}
 		if (ShowGraphs)
 		{
-			DrawFunctions.DrawMenu(new int[] { 125, 530 }, "Center", 200 * NGraphs[0], 200 * NGraphs[1], 2, new Color[] { ColorPalette[25], ColorPalette[12] }, ColorPalette[9]); // Graphs menu
+			DrawFunctions.DrawMenu(new Point( 125, 530 ), "Center", 200 * NGraphs[0], 200 * NGraphs[1], 2, new Color[] { COLOR_PALETTE[6], COLOR_PALETTE[3] }, COLOR_PALETTE[2]); // Graphs menu
 			//System.out.println(Arrays.toString(NGraphs));
 			for (int graphx = 0; graphx <= NGraphs[0] - 1; graphx += 1)
 			{
@@ -289,11 +284,15 @@ public class ANN extends JPanel implements ActionListener
 					ScaledOutputs.add(outputs[i]);
 				}
 				// DF.DrawMenu(GraphPos[graph], "Center", GraphSize, GraphSize, 2, new Color[]
-				// {ColorPalette[25], ColorPalette[11]}, Color.black);
+				// {ColorPalette[6], ColorPalette[11]}, Color.black);
 				DrawFunctions.PlotPoints(new int[] { GraphPos[graph][0] - GraphSize / 2, GraphPos[graph][1] + GraphSize / 2 }, "Results var " + String.valueOf(graph), GraphSize, Color.cyan, Color.blue, ScaledTargets, ScaledOutputs);
 			}
-			DrawFunctions.DrawMenu(new int[] { 575, 525 }, "Center", 150, 150, 2, new Color[] { ColorPalette[25], ColorPalette[12] }, ColorPalette[9]); // Error menu
-			// DF.DrawDynGraph(new int[] {525, 575}, "error (%)", new double[][] {PlotError}, new Color[] {ColorPalette[5]});
+			DrawFunctions.DrawMenu(new Point ( 575, 525 ), "Center", 150, 150, 2, new Color[] { COLOR_PALETTE[6], COLOR_PALETTE[3] }, COLOR_PALETTE[2]); // Error menu
+			// DF.DrawDynGraph(new int[] {525, 575}, "error (%)", new double[][] {PlotError}, new Color[] {ColorPalette[0]});
+			
+			DrawFunctions.DrawTargetGraph(new Point(575, 525), 100, Uts.calcError(output, target)) ;
+			System.out.println(Uts.errorperc2(output, target));
+			DrawFunctions.DrawAccuracyBar(new Point( 450, 600 ), new Dimension ( 20, 100 ), Uts.errorperc2(output, target)) ;
 		}
 	}
 	

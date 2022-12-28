@@ -46,7 +46,6 @@ public class MainANN extends JFrame
 			public void actionPerformed(ActionEvent e)
 			{
 				RunTraining = !RunTraining;
-				System.out.println(1);
 			}
 		});
 		NNButton.addActionListener(new ActionListener()
@@ -69,7 +68,7 @@ public class MainANN extends JFrame
 	
 	public MainANN()
 	{
-		ANNpanel = new ANN(new Dimension(700, 600));
+		ANNpanel = new ANN(frameSize);
 		this.setTitle("Rede neural");
 		this.setSize(frameSize);
 		this.setLayout(new FlowLayout());

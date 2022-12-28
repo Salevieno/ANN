@@ -1,0 +1,7 @@
+{ 
+	"NumberMaxIterations": 20000,
+	"NumberNeurons": [ 3, 2, 2 ],
+	"InitialLearningRate": 0.5,
+	"ErrorVariationTolerance": 0.0,
+	"ErrorTotalTolerance": 0.0
+}

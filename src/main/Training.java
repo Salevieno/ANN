@@ -3,7 +3,7 @@ package main;
 import utilities.Utg;
 import utilities.Uts;
 
-public abstract class ANNTraining
+public abstract class Training
 {
 	public static double[][] ForwardPropagation(double[] input, int[] Nneurons, double[][][] weight, double[][] bias, boolean ApplyBias)
 	{
