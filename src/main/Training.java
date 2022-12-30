@@ -5,7 +5,7 @@ import utilities.Uts;
 
 public abstract class Training
 {
-	public static double[][] ForwardPropagation(double[] input, int[] Nneurons, double[][][] weight, double[][] bias, boolean ApplyBias)
+	public static double[][] forwardPropagation(double[] input, int[] Nneurons, double[][][] weight, double[][] bias, boolean ApplyBias)
 	{
 		int Nlayers = Nneurons.length;
 		double[][] neuronvalue = new double[Nlayers][];
@@ -79,7 +79,7 @@ public abstract class Training
 		return Dweight;
 	}
 	
-	public static double[][][] UpdateWeights(int[] Nneurons, double Lrate, double[][][] weight, double[][][] Dweight)
+	public static double[][][] updateWeights(int[] Nneurons, double Lrate, double[][][] weight, double[][][] Dweight)
 	{
 		int Nlayers = Nneurons.length;
 		for (int layer = 0; layer <= Nlayers - 2; layer += 1)

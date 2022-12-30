@@ -11,62 +11,32 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import main.ANN;
+import utilities.AlignmentPoints;
 import utilities.Utg;
 
 public abstract class DrawFunctions
 {
-	private static final Font STD_FONT = new Font("SansSerif", Font.PLAIN, 20);
-	private static final Font STD_BOLD_FONT = new Font("SansSerif", Font.BOLD, 20);
-	private static int stdStroke = 2;
+	private static final Font STD_FONT = new Font("SansSerif", Font.BOLD, 13);
+	private static final int STD_STROKE = 2;
 	private static Graphics2D graphics;
 		
 	public static void setG(Graphics2D g)
 	{
 		graphics = g;
 	}
-	public static void DrawText(Point Pos, String Text, String Alignment, float angle, String Style, int size, Color color)
-    {
-		float TextLength = Utg.TextL(Text, STD_FONT, size, graphics), TextHeight = Utg.TextH(size);
-    	int[] Offset = new int[2];
-		AffineTransform a = null;	// Rotate rectangle
-		AffineTransform backup = graphics.getTransform();
-		if (Alignment.equals("Left"))
-    	{
-			a = AffineTransform.getRotateInstance(-angle*Math.PI/180, Pos.x - 0.5*TextLength, Pos.y + 0.5*TextHeight);	// Rotate text
-    	}
-		else if (Alignment.equals("Center"))
-    	{
-			a = AffineTransform.getRotateInstance(-angle*Math.PI/180, Pos.x, Pos.y + 0.5*TextHeight);	// Rotate text
-    		Offset[0] = -Utg.TextL(Text, STD_BOLD_FONT, size, graphics)/2;
-    		Offset[1] = Utg.TextH(size)/2;
-    	}
-		else if (Alignment.equals("BotCenter"))
-    	{
-			a = AffineTransform.getRotateInstance(-angle*Math.PI/180, Pos.x, Pos.y + 0.5*TextHeight);	// Rotate text
-    		Offset[0] = -Utg.TextL(Text, STD_BOLD_FONT, size, graphics)/2;
-    		Offset[1] = Utg.TextH(size);
-    	}
-    	else if (Alignment.equals("Right"))
-    	{
-			a = AffineTransform.getRotateInstance(-angle*Math.PI/180, Pos.x, Pos.y + 0.5*TextHeight);	// Rotate text
-    		Offset[0] = -Utg.TextL(Text, STD_BOLD_FONT, size, graphics);
-    	}
-    	if (Style.equals("Bold"))
-    	{
-    		graphics.setFont(new Font(STD_BOLD_FONT.getName(), STD_BOLD_FONT.getStyle(), size));
-    	}
-    	else
-    	{
-    		graphics.setFont(new Font(STD_FONT.getName(), STD_FONT.getStyle(), size));
-    	}
-    	if (0 < Math.abs(angle))
-    	{
-    		graphics.setTransform(a);
-    	}
-    	graphics.setColor(color);
-    	graphics.drawString(Text, Pos.x + Offset[0], Pos.y + Offset[1]);
-        graphics.setTransform(backup);
-    }
+	public static void DrawText(Point pos, AlignmentPoints alignment, double angle, String text, Font font, Color color)
+	{
+		// by default starts at the left bottom
+		int TextL = Utg.TextL(text, font, graphics), TextH = Utg.TextH(font.getSize()) ;
+		Point offset = Utg.OffsetFromPos(alignment, TextL, TextH) ;
+		AffineTransform backup = graphics.getTransform() ;		
+		graphics.setColor(color) ;
+		graphics.setFont(font) ;
+		graphics.setTransform(AffineTransform.getRotateInstance(-angle * Math.PI / 180, pos.x, pos.y)) ;	// Rotate text
+		graphics.drawString(text, pos.x + offset.x, pos.y + offset.y + TextH) ;
+		graphics.setTransform(backup) ;
+	}
 	public static void DrawPoint(Point pos, int size, int stroke, Color contourColor, Color fillColor)
     {
 		graphics.setStroke(new BasicStroke(stroke));
@@ -87,21 +57,21 @@ public abstract class DrawFunctions
     	graphics.setColor(color);
     	graphics.setStroke(new BasicStroke(thickness));
     	graphics.drawLine(PosInit[0], PosInit[1], PosFinal[0], PosFinal[1]);
-    	graphics.setStroke(new BasicStroke(stdStroke));
+    	graphics.setStroke(new BasicStroke(STD_STROKE));
     }
-	public static void DrawRoundRect(Point Pos, String Alignment, int l, int h, int Thickness, int ArcWidth, int ArcHeight, Color color, Color ContourColor)
+	public static void DrawRoundRect(Point pos, AlignmentPoints alignment, Dimension size, int stroke, Dimension arc, Color fillColor, Color contourColor)
 	{
-		int[] offset = Utg.OffsetFromPos(Alignment, l, h);
-		graphics.setStroke(new BasicStroke(Thickness));
-		if (ContourColor != null)
+		Point offset = Utg.OffsetFromPos(alignment, size.width, size.height);
+		graphics.setStroke(new BasicStroke(stroke));
+		if (contourColor != null)
 		{
-			graphics.setColor(ContourColor);
-			graphics.drawRoundRect(Pos.x + offset[0] - Thickness, Pos.y + offset[1] - Thickness, l + 2*Thickness, h + 2*Thickness, ArcWidth, ArcHeight);
+			graphics.setColor(contourColor);
+			graphics.drawRoundRect(pos.x + offset.x - stroke, pos.y + offset.y - stroke, size.width + 2*stroke, size.height + 2*stroke, arc.width, arc.height);
 		}
-		if (color != null)
+		if (fillColor != null)
 		{
-			graphics.setColor(color);
-			graphics.fillRoundRect(Pos.x + offset[0], Pos.y + offset[1], l, h, ArcWidth, ArcHeight);
+			graphics.setColor(fillColor);
+			graphics.fillRoundRect(pos.x + offset.x, pos.y + offset.y, size.width, size.height, arc.width, arc.height);
 		}
 		graphics.setStroke(new BasicStroke(1));
 	}
@@ -118,7 +88,7 @@ public abstract class DrawFunctions
 			graphics.setColor(contourColor) ;
 			graphics.drawOval(center.x - diameter/2, center.y - diameter/2, diameter, diameter) ;
 		}
-		graphics.setStroke(new BasicStroke(stdStroke)) ;
+		graphics.setStroke(new BasicStroke(STD_STROKE)) ;
 	}
 	public static void DrawPolygon(int[] x, int[] y, boolean fill, Color ContourColor, Color FillColor)
     {
@@ -144,7 +114,7 @@ public abstract class DrawFunctions
 		int size = 4 ;
 		for (int i = 0 ; i <= distToCenter.length - 1; i += 1)
 		{
-			double angle = 2 * Math.PI * Math.random() ;
+			double angle = (2 * Math.PI * i) / distToCenter.length ;
 			Point pos = new Point((int) (center.x + distToCenter[i] * targetSize * Math.cos(angle)),
 					(int) (center.y + distToCenter[i] * targetSize * Math.sin(angle))) ;
 			DrawPoint(pos, size, 1, Color.black, Color.cyan) ;
@@ -158,10 +128,11 @@ public abstract class DrawFunctions
 	public static void DrawAccuracyBar(Point botCenter, Dimension size, double error)
 	{
 		double accuracy = 1 - error ;
-		DrawText(new Point(botCenter.x, botCenter.y - size.height - 30), "Confiança", "BotCenter", 0, "Bold", 14, Color.black) ;
-		DrawText(new Point(botCenter.x - size.width - 10, botCenter.y - size.height), "100%", "Center", 0, "Bold", 13, new Color(0, 200, 0)) ;
-		DrawRoundRect(botCenter, "BotCenter", size.width, size.height, stdStroke, 5, 5, null, Color.black) ;
-		DrawRoundRect(botCenter, "BotCenter", size.width, (int) (accuracy * size.height), stdStroke, 5, 5, Color.green, null) ;
+		Dimension arc = new Dimension(5, 5) ;
+		DrawText(new Point(botCenter.x, botCenter.y - size.height - 10), AlignmentPoints.bottomCenter, 0, "Accuracy", STD_FONT, Color.black) ;
+		DrawText(new Point(botCenter.x - size.width - 5, botCenter.y - size.height), AlignmentPoints.centerRight, 0, "100%", STD_FONT, new Color(0, 200, 0)) ;
+		DrawRoundRect(botCenter, AlignmentPoints.bottomCenter, size, STD_STROKE, arc, null, Color.black) ;
+		DrawRoundRect(botCenter, AlignmentPoints.bottomCenter, new Dimension(size.width, (int) (accuracy * size.height)), STD_STROKE, arc, Color.green, null) ;
 	}
 	public static void DrawGrid(int[] InitPos, int[] FinalPos, int NumSpacing)
 	{
@@ -188,7 +159,7 @@ public abstract class DrawFunctions
 	{
 		int asize = 8 * size / 100;
 		double aangle = Math.PI * 30 / 180.0;
-		DrawText(new Point(Pos[0] + size/2, (int) (Pos[1] - size - 13 - 2)), Title, "Center", 0, "Bold", 13, Color.cyan);
+		DrawText(new Point(Pos[0] + size/2, (int) (Pos[1] - size - 13 - 2)), AlignmentPoints.center, 0, Title, STD_FONT, Color.cyan);
 		DrawLine(Pos, new int[] {Pos[0], (int) (Pos[1] - size - asize)}, 2, color);
 		DrawLine(Pos, new int[] {(int) (Pos[0] + size + asize), Pos[1]}, 2, color);
 		DrawArrow(new int[] {Pos[0] + size + asize, Pos[1]}, asize, aangle, false, 0.4 * asize, color);
@@ -230,27 +201,33 @@ public abstract class DrawFunctions
 			DrawPoint(new Point((int) (Pos[0] + x.get(p)), (int) (Pos[1] - y.get(p))), 6, 1, contourColor, fillColor);
 		}
 	}
-    public static void DrawMenu(Point Pos, String Alignment, int l, int h, int Thickness, Color[] colors, Color ContourColor)
+    public static void DrawMenu(Point pos, Dimension size, Color[] colors, Color ContourColor)
     {
     	int border = 3;
-    	DrawRoundRect(Pos, Alignment, l, h, Thickness, 5, 5, colors[0], ContourColor);
-    	DrawRoundRect(Pos, Alignment, l - 2*border, h - 2*border, Thickness, 5, 5, colors[1], ContourColor);
+		Dimension arc = new Dimension(5, 5) ;
+    	DrawRoundRect(pos, AlignmentPoints.center, size, STD_STROKE, arc, colors[0], ContourColor);
+    	DrawRoundRect(pos, AlignmentPoints.center, new Dimension(size.width - 2*border, size.height - 2*border), STD_STROKE, arc, colors[1], ContourColor);
     }
-	public static void DrawANNInfo(Point Pos, int iter, int[] Nneurons, double errorperc, boolean ApplyBias, Color TextColor)
+	public static void DrawANNInfo(Point pos, int iter, int[] numberNeurons, double errorperc, boolean applyBias, Color textColor)
 	{
-		int FontSize = 13;
 		int sy = 15;
-		DrawText(Pos, "*** Parâmetros da rede neural ***", "Left", 0, "Bold", FontSize, TextColor);
-		DrawText(new Point(Pos.x, Pos.y + 1 * sy), "Número de neurônios: " + String.valueOf(Arrays.toString(Nneurons)), "Left", 0, "Bold", FontSize, TextColor);
-		DrawText(new Point(Pos.x, Pos.y + 2 * sy), "Bias: " + String.valueOf(ApplyBias), "Left", 0, "Bold", FontSize, TextColor);
-		DrawText(new Point(Pos.x, Pos.y + 3 * sy), "Iteração: " + String.valueOf(iter), "Left", 0, "Bold", FontSize, TextColor);
-		DrawText(new Point(Pos.x, Pos.y + 4 * sy), "Erro: " + String.valueOf(Utg.Round(errorperc, 2)) + "%", "Left", 0, "Bold", FontSize, TextColor);
+		DrawText(pos, AlignmentPoints.topLeft, 0, "*** Parametros da rede neural ***", STD_FONT, textColor);
+		DrawText(new Point(pos.x, pos.y + 1 * sy), AlignmentPoints.topLeft, 0, "Numero de neuronios: " + String.valueOf(Arrays.toString(numberNeurons)), STD_FONT, textColor);
+		DrawText(new Point(pos.x, pos.y + 2 * sy), AlignmentPoints.topLeft, 0, "Bias: " + String.valueOf(applyBias), STD_FONT, textColor);
+		DrawText(new Point(pos.x, pos.y + 3 * sy), AlignmentPoints.topLeft, 0, "Iteracao: " + String.valueOf(iter), STD_FONT, textColor);
+		DrawText(new Point(pos.x, pos.y + 4 * sy), AlignmentPoints.topLeft, 0, "Erro: " + String.valueOf(Utg.Round(errorperc, 2)) + "%", STD_FONT, textColor);
 	}
-	public static void DrawANN(Point pos, int[] size, int[] Nneurons, double[][] neuronvalue, double[][][] weight, boolean DrawLines, Color color)
+	public static void DrawANNInfoMenu(Point pos, int iter, int[] numberNeurons, double errorperc, boolean applyBias, Color[] colors, Color textColor)
 	{
-		int FontSize = 13;
+		Dimension menuSize = new Dimension(300, 100) ;
+		int paddingY = 10 ;
+		DrawMenu(pos, menuSize, new Color[] { ANN.COLOR_PALETTE[0], ANN.COLOR_PALETTE[1] }, ANN.COLOR_PALETTE[2]);
+		DrawANNInfo(new Point(pos.x - menuSize.width / 2, pos.y - menuSize.height / 2 + paddingY), iter, numberNeurons, errorperc, applyBias, textColor);
+	}
+	public static void DrawANN(Point pos, Dimension size, int[] Nneurons, double[][] neuronvalue, double[][][] weight, boolean DrawLines, Color color)
+	{
 		int NeuronSize = 30;
-		int sx = (size[0] - NeuronSize * Nneurons.length) / (Nneurons.length + 1);
+		int sx = (size.width - NeuronSize * Nneurons.length) / (Nneurons.length + 1);
 		
 		// find maximum weight
 		double MaxWeight = weight[0][0][0];
@@ -272,8 +249,8 @@ public abstract class DrawFunctions
 		{
 			for (int l = 1; l <= Nneurons.length - 1;l += 1)
 			{
-				int sy1 = (size[1] - NeuronSize * Nneurons[l - 1]) / (Nneurons[l - 1] + 1);
-				int sy2 = (size[1] - NeuronSize * Nneurons[l]) / (Nneurons[l] + 1);
+				int sy1 = (size.height - NeuronSize * Nneurons[l - 1]) / (Nneurons[l - 1] + 1);
+				int sy2 = (size.height - NeuronSize * Nneurons[l]) / (Nneurons[l] + 1);
 				for (int n1 = 0; n1 <= Nneurons[l - 1] - 1; n1 += 1)
 				{
 					for (int n2 = 0; n2 <= Nneurons[l] - 1; n2 += 1)
@@ -295,12 +272,12 @@ public abstract class DrawFunctions
 		
 		for (int l = 0; l <= Nneurons.length - 1; l += 1)
 		{
-			int sy = (size[1] - NeuronSize * Nneurons[l]) / (Nneurons[l] + 1);
+			int sy = (size.height - NeuronSize * Nneurons[l]) / (Nneurons[l] + 1);
 			for (int n = 0; n <= Nneurons[l] - 1; n += 1)
 			{
 				Point NeuronPos = new Point(pos.x + l * (sx + NeuronSize) + sx + NeuronSize / 2, pos.y + n * (sy + NeuronSize) + sy + NeuronSize / 2);
 				DrawPoint(NeuronPos, NeuronSize, 2, Color.black, color);
-				DrawText(NeuronPos, String.valueOf(Utg.Round(neuronvalue[l][n], 2)), "Center", 0, "Bold", FontSize, Color.black);
+				DrawText(NeuronPos, AlignmentPoints.center, 0, String.valueOf(Utg.Round(neuronvalue[l][n], 2)), STD_FONT, Color.black);
 			}
 		}
 	}

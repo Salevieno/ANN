@@ -8,7 +8,6 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -25,8 +24,9 @@ public class ANN extends JPanel implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
 	private Timer timer;
+	protected ANNStates state ;
 	
-	private static final Color[] COLOR_PALETTE = new Color[]
+	public static final Color[] COLOR_PALETTE = new Color[]
 								{
 										new Color(63, 40, 231),
 										new Color(137, 249, 204),
@@ -37,45 +37,36 @@ public class ANN extends JPanel implements ActionListener
 										new Color(76, 131, 42)
 								};
 
-	private int iter; 			// number of the current iteration
-	private int Niter; 			// maximum number of iterations
-	private int[] Nneurons;	 	// number of neurons in each layer
-	private int Nlayers; 		// number of layers
-	private double Lrate; 		// learning rate
-	private double[][] input; 	// input data
-	private double[][] target; 	// target data
-	private double[][] output; 	// ANN current outputs
-	private double[][] neuronvalue; // value of each neuron (after applying the activation function)
-	private double[][][] Weight; 	// weights
-	private double[][][] Dweight; 	// Delta weight, change in weight during the back propagation. Dw[Layer][Index of origin neuron][Index of desination neuron]
-	private double[][] Bias; 	// biases
-	private double error; 		// current error
-	private double derror; 		// current change in error
-	private double errortol; 	// minimum error (stop if lower)
-	private double derrortol; 	// minimum variation in error between iterations (stop if lower)
-	private int[] multvec; 		// product of the number of neurons in each layer, starts from output
+	private int currentIteration; 		// number of the current iteration
+	private int maxNumberIterations; 	// maximum number of iterations
+	private int[] numberNeurons;	 	// number of neurons in each layer
+	private int numberLayers; 			// number of layers
+	private double learningRate; 		// learning rate
+	private double[][] input; 			// input data
+	private double[][] targets; 		// target data
+	private double[][] outputs; 		// ANN current outputs
+	private double[][] neuronvalues;	// value of each neuron (after applying the activation function)
+	private double[][][] weights; 		// weights
+	private double[][][] dWeights; 		// Delta weight, change in weight during the back propagation. Dw[Layer][Index of origin neuron][Index of desination neuron]
+	private double[][] biases; 			// biases
+	private double error; 				// current error
+	//private double accuracyChangeRate; 			// current rate of change in accuracy
+	private double errortol; 					// minimum error (stop if lower)
+	//private double accuracyChangeRateTolerance; // minimum variation in accuracy between iterations (stop if lower)
+	private int[] multvec; 						// product of the number of neurons in each layer, starts from output
 
-	private boolean RunTraining ;
-	private boolean ShowANN ;
-	private boolean ShowGraphs ;
-	private boolean ApplyBias ;
-	private boolean AdaptativeLrate ;
-	private List<Double> SaveError ;
-	private double[] PlotError ;
+	protected boolean showANN ;
+	protected boolean showGraphs ;
+	protected boolean applyBias ;
+	protected boolean adaptativeLrate ;
+	
+	private List<Double> saveError ;
 
 	public ANN(Dimension panelDimension)
 	{
 		this.setBackground(new Color(250, 240, 220));
 		this.setPreferredSize(panelDimension);
 		this.setVisible(true);
-		
-		RunTraining = true;
-		ShowANN = true;
-		ShowGraphs = true;
-		ApplyBias = false;
-		AdaptativeLrate = true;
-		SaveError = new ArrayList<>();
-		PlotError = null;
 		
 		initialize();
 
@@ -84,22 +75,31 @@ public class ANN extends JPanel implements ActionListener
 	}
 	
 	public void initialize()
-	{
+	{		
+		// initialize ann parameters
+		state = ANNStates.paused ;
+		//RunTraining = true;
+		showANN = true;
+		showGraphs = true;
+		applyBias = false;
+		adaptativeLrate = true;
+		saveError = new ArrayList<>();
+		
 		// getting parameters file data
 		JSONObject parametersData = (JSONObject) Utg.ReadJson("Parameters.json") ;
-		Niter = (int) (long) parametersData.get("NumberMaxIterations") ;
+		maxNumberIterations = (int) (long) parametersData.get("NumberMaxIterations") ;
 		JSONArray numberNeuronsData = (JSONArray) parametersData.get("NumberNeurons") ;
-		Nneurons = new int[numberNeuronsData.size() + 2];
-		Nlayers = numberNeuronsData.size() + 2;
+		numberNeurons = new int[numberNeuronsData.size() + 2];
+		numberLayers = numberNeuronsData.size() + 2;
 		for (int layer = 1; layer <= numberNeuronsData.size(); layer += 1)
 		{
-			Nneurons[layer] = (int) (long) numberNeuronsData.get(layer - 1);
+			numberNeurons[layer] = (int) (long) numberNeuronsData.get(layer - 1);
 		}
-		Lrate = (double) parametersData.get("InitialLearningRate") ;
-		derrortol = (double) parametersData.get("ErrorVariationTolerance") ;
+		learningRate = (double) parametersData.get("InitialLearningRate") ;
+		//accuracyChangeRateTolerance = (double) parametersData.get("AccuracyChangeRateTolerance") ;
 		errortol = (double) parametersData.get("ErrorTotalTolerance") ;
 		error = errortol + 0.01;
-		derror = derrortol + 1;
+		//accuracyChangeRate = accuracyChangeRateTolerance + 0.0001;
 		
 		// getting input and target files data
 		String[][] InputData = Utg.ReadcsvFile("input.txt");
@@ -107,21 +107,21 @@ public class ANN extends JPanel implements ActionListener
 		if (InputData.length == TargetData.length)
 		{
 			input = new double[InputData.length - 1][];
-			target = new double[TargetData.length - 1][];
-			for (int i = 0; i <= InputData.length - 2; i += 1)
+			targets = new double[TargetData.length - 1][];
+			for (int point = 0; point <= InputData.length - 2; point += 1)
 			{
-				input[i] = new double[InputData[i + 1].length];
-				for (int i2 = 0; i2 <= InputData[i + 1].length - 1; i2 += 1)
+				input[point] = new double[InputData[point + 1].length];
+				for (int i = 0; i <= InputData[point + 1].length - 1; i += 1)
 				{
-					input[i][i2] = Double.parseDouble(InputData[i + 1][i2]);
+					input[point][i] = Double.parseDouble(InputData[point + 1][i]);
 				}
 			}
-			for (int i = 0; i <= TargetData.length - 2; i += 1)
+			for (int point = 0; point <= TargetData.length - 2; point += 1)
 			{
-				target[i] = new double[TargetData[i + 1].length];
-				for (int i2 = 0; i2 <= TargetData[i + 1].length - 1; i2 += 1)
+				targets[point] = new double[TargetData[point + 1].length];
+				for (int i = 0; i <= TargetData[point + 1].length - 1; i += 1)
 				{
-					target[i][i2] = Double.parseDouble(TargetData[i + 1][i2]);
+					targets[point][i] = Double.parseDouble(TargetData[point + 1][i]);
 				}
 			}
 		}
@@ -131,56 +131,68 @@ public class ANN extends JPanel implements ActionListener
 		}
 
 		// initializing neurons, weights and biases
-		Nneurons[0] = input[0].length;
-		Nneurons[Nlayers - 1] = target[0].length;
-		Weight = new double[Nlayers - 1][][];
-		Dweight = new double[Nlayers - 1][][];
-		for (int layer = 0; layer <= Nlayers - 2; layer += 1)
+		numberNeurons[0] = input[0].length;
+		numberNeurons[numberLayers - 1] = targets[0].length;
+		weights = new double[numberLayers - 1][][];
+		dWeights = new double[numberLayers - 1][][];
+		for (int layer = 0; layer <= numberLayers - 2; layer += 1)
 		{
-			Weight[layer] = new double[Nneurons[layer + 1]][Nneurons[layer]];
-			Dweight[layer] = new double[Nneurons[layer + 1]][Nneurons[layer]];
+			weights[layer] = new double[numberNeurons[layer + 1]][numberNeurons[layer]];
+			dWeights[layer] = new double[numberNeurons[layer + 1]][numberNeurons[layer]];
 		}
-		Bias = new double[Nlayers][];
-		neuronvalue = new double[Nlayers][];
-		for (int layer = 0; layer <= Nlayers - 1; layer += 1)
+		biases = new double[numberLayers][];
+		neuronvalues = new double[numberLayers][];
+		for (int layer = 0; layer <= numberLayers - 1; layer += 1)
 		{
-			Bias[layer] = new double[Nneurons[layer]];
-			neuronvalue[layer] = new double[Nneurons[layer]];
+			biases[layer] = new double[numberNeurons[layer]];
+			neuronvalues[layer] = new double[numberNeurons[layer]];
 		}
-		for (int layer = 0; layer <= Nlayers - 2; layer += 1)
+		for (int layer = 0; layer <= numberLayers - 2; layer += 1)
 		{
-			for (int ni = 0; ni <= Nneurons[layer + 1] - 1; ni += 1)
+			for (int ni = 0; ni <= numberNeurons[layer + 1] - 1; ni += 1)
 			{
-				for (int nf = 0; nf <= Nneurons[layer] - 1; nf += 1)
+				for (int nf = 0; nf <= numberNeurons[layer] - 1; nf += 1)
 				{
-					// Weight[layer][ni][nf] = 0.1 * (layer + ni);
-					Weight[layer][ni][nf] = Math.random();
+					 weights[layer][ni][nf] = 0.1 * (layer + ni);
+					//weights[layer][ni][nf] = Math.random();
 				}
 			}
 		}
-		for (int layer = 0; layer <= Nlayers - 1; layer += 1)
+		for (int layer = 0; layer <= numberLayers - 1; layer += 1)
 		{
-			for (int ni = 0; ni <= Nneurons[layer] - 1; ni += 1)
+			for (int ni = 0; ni <= numberNeurons[layer] - 1; ni += 1)
 			{
-				neuronvalue[layer][ni] = 0;
-				Bias[layer][ni] = 0.05;
+				neuronvalues[layer][ni] = 0;
+				biases[layer][ni] = 0.05;
 			}
 		}
 		
 		// initialize output and auxiliary variables
-		output = new double[target.length][target[0].length];
-		multvec = Utg.CalcProdVec(Nlayers, Nneurons, target);
-		iter = 0;
-		//ColorPalette = Utg.ColorPalette(2);
+		outputs = new double[targets.length][targets[0].length];
+		multvec = Utg.CalcProdVec(numberLayers, numberNeurons, targets);
+		currentIteration = 0;
 	}
 
-	public void RunTraining()
+	private void updateLearningRate()
 	{
-		if (iter <= Niter)
+		learningRate = Math.max(Math.min(learningRate + error / 100.0, 0.5), 0.05);
+	}
+	
+	private void updateOutputs(int point, int numberLayers, double[] lastLayerNeurons)
+	{
+		for (int n = 0; n <= outputs[point].length - 1; n += 1)
 		{
-			if (iter == 0)
+			outputs[point][n] = lastLayerNeurons[n];
+		}
+	}
+	
+	protected void runTraining()
+	{
+		if (currentIteration <= maxNumberIterations) // accuracyChangeRateTolerance <= accuracyChangeRate
+		{
+			if (currentIteration == 0)
 			{
-				Uts.PrintWeightsAndNeurons(neuronvalue, Weight);
+				Uts.PrintWeightsAndNeurons(neuronvalues, weights);
 			}
 			/*
 			 * There is another method, which is recording the weights here and using them
@@ -188,111 +200,119 @@ public class ANN extends JPanel implements ActionListener
 			 * iteration) However, the current method seems to perform better, converging in
 			 * less iterations
 			 */
-			double preverror = Utg.Round(Uts.errorperc(output, target), 2) / 100;
-			for (int in = 0; in <= input.length - 1; in += 1)
+			
+			// record the error in the previous iteration
+			//double previousError = Utg.Round(Uts.calcErrorPerc(outputs, targets), 2) / 100;
+			
+			// perform the training itself
+			for (int point = 0; point <= input.length - 1; point += 1)
 			{
-				neuronvalue = Training.ForwardPropagation(input[in], Nneurons, Weight, Bias, ApplyBias);
-				Dweight = Training.backpropagation(in, Nneurons, neuronvalue, Weight, target, multvec);
-				Weight = Training.UpdateWeights(Nneurons, Lrate, Weight, Dweight);
-				for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
-				{
-					output[in][n] = neuronvalue[Nlayers - 1][n];
-				}
+				neuronvalues = Training.forwardPropagation(input[point], numberNeurons, weights, biases, applyBias);
+				dWeights = Training.backpropagation(point, numberNeurons, neuronvalues, weights, targets, multvec);
+				weights = Training.updateWeights(numberNeurons, learningRate, weights, dWeights);
+				updateOutputs(point, numberLayers, neuronvalues[numberLayers - 1]) ;
 			}
 
-			error = Utg.Round(Uts.errorperc(output, target), 2) / 100;
-			if (AdaptativeLrate)
+			// record the results of this training iteration
+			error = Utg.Round(Uts.calcErrorPerc(outputs, targets), 2) / 100;
+			if (adaptativeLrate)
 			{
-				Lrate = Math.max(Math.min(Lrate + error / 100.0, 0.5), 0.05);
+				updateLearningRate();				
 			}
-			if (iter % 1 == 0)
-			{
-				//System.out.println("iter: " + (iter + 1) + " erro médio: " + Utg.Round(100 * error, 2) + "%");
-				Utg.SaveTextFile("Weights", Weight);
-			}
-			derror = Math.abs(error - preverror);
-			int inp = 0;
-			for (int var = 0; var <= target[inp].length - 1; var += 1)
-			{
-				PlotError = Utg.AddElemToArrayUpTo(PlotError, 100 * error, 2000);
-			}
-			if (iter % 100 == 0)
-			{
-				SaveError.add(100 * error);
-			}
-			// System.out.println(Arrays.deepToString(output));
-			iter += 1;
+			//accuracyChangeRate = Math.abs(error - previousError);
+			Results.updatePlotError(100 * error, 10) ;
+			Results.recordSaveError(currentIteration, 100, error) ;
+			currentIteration += 1;
+			repaint();
 		}
 
-		if (iter == Niter)
+		if (currentIteration == maxNumberIterations)
 		{
-			for (int in = 0; in <= input.length - 1; in += 1)
+			for (int point = 0; point <= input.length - 1; point += 1)
 			{
-				Training.ForwardPropagation(input[in], Nneurons, Weight, Bias, ApplyBias);
-				output[in] = new double[Nneurons[Nlayers - 1]];
-				for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
-				{
-					output[in][n] = neuronvalue[Nlayers - 1][n];
-				}
+				Training.forwardPropagation(input[point], numberNeurons, weights, biases, applyBias);
+				updateOutputs(point, numberLayers, neuronvalues[numberLayers - 1]) ;
 			}
-			double errorperc = Utg.Round(Uts.errorperc(output, target), 2);
-			Uts.PrintANN(neuronvalue, Weight, Dweight, output, target, errorperc);
-			Utg.SaveTextFile("Error", SaveError);
+			error = Utg.Round(Uts.calcErrorPerc(outputs, targets), 2) / 100;
+			double errorperc = 100 * error ;
+			Uts.PrintANN(neuronvalues, weights, dWeights, outputs, targets, errorperc);
+			Utg.SaveTextFile("Error", saveError);
 		}
 	}
-
-	public void DrawStuff()
+	
+	protected void runTesting()
 	{
-		//int inp = 0;
-		int[] NGraphs = new int[] { 1, 1 };
-		int[][] GraphPos = new int[NGraphs[0] * NGraphs[1]][2];
-
-		DrawFunctions.DrawMenu(new Point( 200, 100 ), "Center", 300, 100, 2, new Color[] { COLOR_PALETTE[0], COLOR_PALETTE[1] }, COLOR_PALETTE[2]); // ANN info menu
-		DrawFunctions.DrawANNInfo(new Point( 60, 70 ), iter, Nneurons, Uts.errorperc(output, target), ApplyBias, COLOR_PALETTE[2]);
-		if (ShowANN)
+		// performs a forward propagation for each input point and updates the outputs
+		for (int point = 0; point <= input.length - 1; point += 1)
 		{
-			DrawFunctions.DrawMenu(new Point( 350, 300 ), "Center", 500, 200, 2, new Color[] { COLOR_PALETTE[0], COLOR_PALETTE[4] }, COLOR_PALETTE[2]); // ANN menu
-			DrawFunctions.DrawANN(new Point( 100, 200 ), new int[] { 500, 200 }, Nneurons, neuronvalue, Weight, true, COLOR_PALETTE[5]);
+			neuronvalues = Training.forwardPropagation(input[point], numberNeurons, weights, biases, applyBias);
+			updateOutputs(point, numberLayers, neuronvalues[numberLayers - 1]) ;
 		}
-		if (ShowGraphs)
+		
+		// records the total error of the testing
+		error = Utg.Round(Uts.calcErrorPerc(outputs, targets), 2) / 100;
+	}
+
+	private void drawStuff()
+	{
+		Point infoMenuPos = new Point(180, 60) ;
+		Dimension infoMenuSize = new Dimension(300, 100) ;
+		int paddingY = 10 ;
+		DrawFunctions.DrawMenu(infoMenuPos, infoMenuSize, new Color[] { ANN.COLOR_PALETTE[0], ANN.COLOR_PALETTE[1] }, ANN.COLOR_PALETTE[2]);
+		DrawFunctions.DrawANNInfo(new Point(infoMenuPos.x - infoMenuSize.width / 2, infoMenuPos.y - infoMenuSize.height / 2 + paddingY), currentIteration, numberNeurons, 100 * error, applyBias, COLOR_PALETTE[2]);
+		if (showANN)
 		{
-			DrawFunctions.DrawMenu(new Point( 125, 530 ), "Center", 200 * NGraphs[0], 200 * NGraphs[1], 2, new Color[] { COLOR_PALETTE[6], COLOR_PALETTE[3] }, COLOR_PALETTE[2]); // Graphs menu
+			Point annPos = new Point(350, 250) ;
+			Dimension annSize = new Dimension(500, 200) ;
+			DrawFunctions.DrawMenu(annPos, annSize, new Color[] { COLOR_PALETTE[0], COLOR_PALETTE[4] }, COLOR_PALETTE[2]); // ANN menu
+			DrawFunctions.DrawANN(new Point(annPos.x - annSize.width / 2, annPos.y - annSize.height / 2), annSize, numberNeurons, neuronvalues, weights, true, COLOR_PALETTE[5]);
+		}
+		if (showGraphs)
+		{
+			// creates a grid of graphs
+			Point graphsMenuPos = new Point(125, 480) ;
+			int[] numberGraphs = new int[] { 1, 1 };	// number of graphs in the x and y directions (rows and columns)
+			int[][] posGraphs = new int[numberGraphs[0] * numberGraphs[1]][2];
+			DrawFunctions.DrawMenu(graphsMenuPos, new Dimension(200 * numberGraphs[0], 200 * numberGraphs[1]), new Color[] { COLOR_PALETTE[6], COLOR_PALETTE[3] }, COLOR_PALETTE[2]); // Graphs menu
 			//System.out.println(Arrays.toString(NGraphs));
-			for (int graphx = 0; graphx <= NGraphs[0] - 1; graphx += 1)
+			for (int graphx = 0; graphx <= numberGraphs[0] - 1; graphx += 1)
 			{
-				for (int graphy = 0; graphy <= NGraphs[1] - 1; graphy += 1)
+				for (int graphy = 0; graphy <= numberGraphs[1] - 1; graphy += 1)
 				{
 					//System.out.println(Arrays.toString(GraphPos[graphx * NGraphs[1] + graphy]));
-					GraphPos[graphx * NGraphs[1] + graphy] = new int[] { 125 + 130 * graphx, 530 + 130 * graphy };
+					posGraphs[graphx * numberGraphs[1] + graphy] = new int[] {graphsMenuPos.x + 130 * graphx, graphsMenuPos.y + 130 * graphy};
 				}
 			}
-			int GraphSize = Math.min(150 / NGraphs[0], 150 / NGraphs[1]);
-			for (int graph = 0; graph <= NGraphs[0] * NGraphs[1] - 1; graph += 1)
+			int GraphSize = Math.min(150 / numberGraphs[0], 150 / numberGraphs[1]);
+			for (int graph = 0; graph <= numberGraphs[0] * numberGraphs[1] - 1; graph += 1)
 			{
 				// double[] ScaledTargets = Utg.ScaledVector(Utg.Transpose(target)[graph], 0, 200);
 				// double[] ScaledOutputs = Utg.ScaledVector(Utg.Transpose(output)[graph], 0, 200);
 				List<Double> ScaledTargets = new ArrayList<>();
 				List<Double> ScaledOutputs = new ArrayList<>();
-				double[] targets = Utg.Transpose(target)[graph];
-				double[] outputs = Utg.Transpose(output)[graph];
+				double[] target = Utg.Transpose(targets)[graph];
+				double[] output = Utg.Transpose(outputs)[graph];
 				for (int i = 0; i <= targets.length - 1; i+= 1)
 				{
-					ScaledTargets.add(targets[i]);
+					ScaledTargets.add(target[i]);
 				}
 				for (int i = 0; i <= outputs.length - 1; i+= 1)
 				{
-					ScaledOutputs.add(outputs[i]);
+					ScaledOutputs.add(output[i]);
 				}
 				// DF.DrawMenu(GraphPos[graph], "Center", GraphSize, GraphSize, 2, new Color[]
 				// {ColorPalette[6], ColorPalette[11]}, Color.black);
-				DrawFunctions.PlotPoints(new int[] { GraphPos[graph][0] - GraphSize / 2, GraphPos[graph][1] + GraphSize / 2 }, "Results var " + String.valueOf(graph), GraphSize, Color.cyan, Color.blue, ScaledTargets, ScaledOutputs);
+				DrawFunctions.PlotPoints(new int[] { posGraphs[graph][0] - GraphSize / 2, posGraphs[graph][1] + GraphSize / 2 }, "Results var " + String.valueOf(graph), GraphSize, Color.cyan, Color.blue, ScaledTargets, ScaledOutputs);
 			}
-			DrawFunctions.DrawMenu(new Point ( 575, 525 ), "Center", 150, 150, 2, new Color[] { COLOR_PALETTE[6], COLOR_PALETTE[3] }, COLOR_PALETTE[2]); // Error menu
-			// DF.DrawDynGraph(new int[] {525, 575}, "error (%)", new double[][] {PlotError}, new Color[] {ColorPalette[0]});
-			
-			DrawFunctions.DrawTargetGraph(new Point(575, 525), 100, Uts.calcError(output, target)) ;
-			System.out.println(Uts.errorperc2(output, target));
-			DrawFunctions.DrawAccuracyBar(new Point( 450, 600 ), new Dimension ( 20, 100 ), Uts.errorperc2(output, target)) ;
+			Point targetGraphCenter = new Point(graphsMenuPos.x + 450, graphsMenuPos.y) ;
+			Dimension targetMenuSize = new Dimension(150, 150) ;
+			int targetGraphSize = 100 ;
+			DrawFunctions.DrawMenu(targetGraphCenter, targetMenuSize, new Color[] { COLOR_PALETTE[6], COLOR_PALETTE[3] }, COLOR_PALETTE[2]); // Error menu
+			DrawFunctions.DrawTargetGraph(targetGraphCenter, targetGraphSize, Uts.calcError(outputs, targets)) ;
+			DrawFunctions.DrawAccuracyBar(new Point(graphsMenuPos.x + 320, graphsMenuPos.y + targetMenuSize.height / 2), new Dimension ( 20, targetGraphSize ), Uts.errorperc2(outputs, targets)) ;
+
+			//System.out.println("accuracy change rate: " + accuracyChangeRateTolerance + " <= " + accuracyChangeRate);
+			// DF.DrawDynGraph(new int[] {525, 575}, "error (%)", new double[][] {PlotError}, new Color[] {ColorPalette[0]});			
 		}
 	}
 	
@@ -301,11 +321,32 @@ public class ANN extends JPanel implements ActionListener
 	{
 		super.paintComponent(g);
 		DrawFunctions.setG((Graphics2D) g);
-		if (RunTraining)
+		switch (state)
 		{
-			RunTraining();
+			case training:
+			{
+				runTraining();
+				
+				break ;
+			}
+			case testing:
+			{
+				// TODO implement testing
+				
+				break ;
+			}
+			case usable:
+			{
+				// TODO implement usable
+				
+				break ;
+			}
+			case paused:
+			{				
+				break ;
+			}
 		}
-		DrawStuff();
+		drawStuff();
 	}
 	
 	/*private void initComponents()
@@ -369,7 +410,7 @@ public class ANN extends JPanel implements ActionListener
 	{
 		if (e.getSource() == timer)
 		{
-			repaint();
+			//repaint();
 		}
 	}
 }

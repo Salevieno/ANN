@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import utilities.Utg;
 
@@ -17,63 +16,111 @@ public class MainANN extends JFrame
 {
 	private static final long serialVersionUID = 1L;
 	private static final Dimension frameSize = new Dimension(700, 700);
-	private static JPanel ANNpanel;
-	
-	private boolean RunTraining = true, ShowANN = true, ShowGraphs = true;
+	private ANN ann;
 
-	public void AddButtons()
+	public void addButtons()
 	{
 		/* Defining Button Icons */
-		String ImagesPath = ".\\Icons\\";
-		ImageIcon PlayIcon = new ImageIcon(ImagesPath + "PlayIcon.png");
-		ImageIcon NNIcon = new ImageIcon(ImagesPath + "NNIcon.png");
-		ImageIcon GraphsIcon = new ImageIcon(ImagesPath + "GraphsIcon.png");
+		String imagesPath = ".\\Icons\\";
+		ImageIcon playIcon = new ImageIcon(imagesPath + "playIcon.png");
+		ImageIcon trainIcon = new ImageIcon(imagesPath + "testIcon.png");
+		ImageIcon testIcon = new ImageIcon(imagesPath + "trainIcon.png");
+		ImageIcon displayNeuronsIcon = new ImageIcon(imagesPath + "displayNeuronsIcon.png");
+		ImageIcon displayGraphsIcon = new ImageIcon(imagesPath + "displayGraphsIcon.png");
 
 		/* Defining Buttons */
-		Color BackgroundColor = Color.cyan;
-		JButton PlayButton = Utg.AddButton(PlayIcon, new int[2], new int[] { 30, 30 }, BackgroundColor);
-		JButton NNButton = Utg.AddButton(NNIcon, new int[2], new int[] { 30, 30 }, BackgroundColor);
-		JButton GraphsButton = Utg.AddButton(GraphsIcon, new int[2], new int[] { 30, 30 }, BackgroundColor);
+		Color backgroundColor = new Color(100, 0, 80) ;
+		Dimension buttonSize = new Dimension(32, 32) ;
+		JButton playButton = Utg.addButton(playIcon, new int[2], buttonSize, backgroundColor);
+		JButton trainButton = Utg.addButton(trainIcon, new int[2], buttonSize, backgroundColor);
+		JButton testButton = Utg.addButton(testIcon, new int[2], buttonSize, backgroundColor);
+		JButton displayNeuronsButton = Utg.addButton(displayNeuronsIcon, new int[2], buttonSize, backgroundColor);
+		JButton displayGraphsButton = Utg.addButton(displayGraphsIcon, new int[2], buttonSize, backgroundColor);
 		Container cp = getContentPane();
-		cp.add(PlayButton);
-		cp.add(NNButton);
-		cp.add(GraphsButton);
+		cp.add(playButton);
+		cp.add(trainButton);
+		cp.add(testButton);
+		cp.add(displayNeuronsButton);
+		cp.add(displayGraphsButton);
 
 		// Defining button actions
-		PlayButton.addActionListener(new ActionListener()
+		playButton.addActionListener(new ActionListener()
 		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				RunTraining = !RunTraining;
+				//RunTraining = !RunTraining;
+				if (ann.state.equals(ANNStates.training))
+				{
+					//ann.state = ANNStates.paused ;
+				}
+				else if (ann.state.equals(ANNStates.paused))
+				{
+					//ann.state = ANNStates.training ;
+					ann.repaint();
+				}					
 			}
 		});
-		NNButton.addActionListener(new ActionListener()
+		trainButton.addActionListener(new ActionListener()
 		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				ShowANN = !ShowANN;
+				//RunTraining = !RunTraining;
+				if (ann.state.equals(ANNStates.training))
+				{
+					ann.state = ANNStates.paused ;
+				}
+				else if (ann.state.equals(ANNStates.paused))
+				{
+					ann.state = ANNStates.training ;
+					ann.repaint();
+				}					
 			}
 		});
-		GraphsButton.addActionListener(new ActionListener()
+		testButton.addActionListener(new ActionListener()
 		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				ShowGraphs = !ShowGraphs;
+				//RunTraining = !RunTraining;
+				if (ann.state.equals(ANNStates.testing))
+				{
+					ann.state = ANNStates.paused ;
+				}
+				else if (ann.state.equals(ANNStates.paused))
+				{
+					ann.state = ANNStates.testing ;
+					ann.repaint();
+				}					
+			}
+		});
+		displayNeuronsButton.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				ann.showANN = !ann.showANN;
+			}
+		});
+		displayGraphsButton.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				ann.showGraphs = !ann.showGraphs;
 			}
 		});
 	}
 	
 	public MainANN()
 	{
-		ANNpanel = new ANN(frameSize);
+		ann = new ANN(frameSize);
 		this.setTitle("Rede neural");
 		this.setSize(frameSize);
 		this.setLayout(new FlowLayout());
-		AddButtons();
-		this.add(ANNpanel);
+		addButtons();
+		this.add(ann);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setVisible(true);
 	}

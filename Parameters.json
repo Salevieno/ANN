@@ -1,7 +1,7 @@
 { 
-	"NumberMaxIterations": 20000,
-	"NumberNeurons": [ 3, 2, 2 ],
+	"NumberMaxIterations": 100,
+	"NumberNeurons": [ 3, 2, 2, 2 ],
 	"InitialLearningRate": 0.5,
-	"ErrorVariationTolerance": 0.0,
+	"AccuracyChangeRateTolerance": 0.000000000001,
 	"ErrorTotalTolerance": 0.0
 }

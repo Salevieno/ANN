@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public abstract class Uts 
 {
+	
 	public static void PrintWeightsAndNeurons(double[][] neuronvalue, double[][][] weight)
 	{
 		System.out.println();
@@ -67,7 +68,7 @@ public abstract class Uts
 		return error;
 	}
 
-	public static double errorperc(double[][] output, double[][] target)
+	public static double calcErrorPerc(double[][] output, double[][] target)
 	{
 		double error = 0;
 		int numberOutput = output[0].length ;
@@ -139,103 +140,5 @@ public abstract class Uts
 		}
 		return Map;
 	}
-	/*
 
-	public static double[] ImagePixels(String FilePath)
-	{
-		Image image = new ImageIcon(FilePath).getImage();
-		int ImageL = (image.getWidth(null)), ImageH = (image.getHeight(null));	// dimensions of the image in pixels
-		double[] input = new double[ImageL * ImageH * 3];
-		for (int i = 0; i <= ImageL - 1; i += 3)
-		{
-			for (int j = 0; j <= ImageH - 1; j += 3)
-			{
-				Color PixelColor = Utg.GetPixelColor(Utg.toBufferedImage(image), new int[] {i, j});
-				input[i * ImageH + j] = PixelColor.getRed() / 255.0;
-				input[i * ImageH + j + 1] = PixelColor.getGreen() / 255.0;
-				input[i * ImageH + j + 2] = PixelColor.getBlue() / 255.0;
-			}
-		}
-		return input;
-	}
-	
-	public static double[] errorpoints(double[][] input, int Nlayers, int[] Nneurons, double[][] output, double[][] target, double[][][] weight, double[][] bias)
-	{
-		double[] error = new double[input.length];		
-		for (int t = 0; t <= target.length - 1; t += 1)
-		{	
-			for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
-			{
-				if (target[t][n] != 0)
-				{
-					error[t] += Math.abs((target[t][n] - output[t][n]) / target[t][n]);
-				}
-				else
-				{
-					error[t] += Math.abs((target[t][n] - output[t][n]) / 1);
-				}
-			}
-		}
-		return error;
-	}
-	
-	public static double error(double[][] input, int Nlayers, int[] Nneurons, double[][] output, double[][] target, double[][][] weight, double[][] bias)
-	{
-		double error = 0;		
-		for (int inp = 0; inp <= input.length - 1; inp += 1)
-		{	
-			for (int n = 0; n <= Nneurons[Nlayers - 1] - 1; n += 1)
-			{
-				error += 1 / 2.0 * Math.pow(target[inp][n] - output[inp][n], 2);
-			}		
-		}
-		return error;
-	}
-	
-	public static double[][][] GetWeights(double[][][] weight)
-	{
-		double[][][] Weight = new double[weight.length][][];
-		for (int i = 0; i <= weight.length - 1; i += 1)
-		{
-			Weight[i] = new double[weight[i].length][];
-			for (int j = 0; j <= weight[i].length - 1; j += 1)
-			{
-				Weight[i][j] = new double[weight[i][j].length];
-				for (int k = 0; k <= weight[i][j].length - 1; k += 1)
-				{
-					Weight[i][j][k] = weight[i][j][k];
-				}	
-			}
-		}
-		
-		return Weight;
-	}	
-
-
-	public static void PrintWeights(int Nlayers, int[] Nneurons, Neuron[][] neuron)
-	{
-		for (int layer = 0; layer <= Nlayers - 2; layer += 1)
-		{
-			System.out.println("layer: " + layer);
-			for (int n = 0; n <= Nneurons[layer] - 1; n += 1)
-			{
-				System.out.println(Arrays.toString(neuron[layer][n].getweight()));
-			}
-			System.out.println();
-		}
-	}
-	
-	public static void PrintDWeights(int Nlayers, int[] Nneurons, double[][][] Dweight)
-	{
-		for (int layer = 0; layer <= Nlayers - 2; layer += 1)
-		{
-			System.out.println("layer: " + layer);
-			for (int n = 0; n <= Nneurons[layer] - 1; n += 1)
-			{
-				System.out.println(Arrays.toString(Dweight[layer][n]));
-			}
-			System.out.println();
-		}
-	}
-	*/
 }
