@@ -16,6 +16,7 @@ public class MainANN extends JFrame
 {
 	private static final long serialVersionUID = 1L ;
 	private static final Dimension frameSize = new Dimension(700, 700) ;
+	private ANNStates previousState ;
 	private ANN ann ;
 
 	public void addButtons()
@@ -52,11 +53,17 @@ public class MainANN extends JFrame
 				//RunTraining = !RunTraining ;
 				if (ann.state.equals(ANNStates.training))
 				{
-					//ann.state = ANNStates.paused ;
+					previousState = ANNStates.training ;
+					ann.state = ANNStates.paused ;
+				}
+				else if (ann.state.equals(ANNStates.testing))
+				{
+					previousState = ANNStates.testing ;
+					ann.state = ANNStates.paused ;
 				}
 				else if (ann.state.equals(ANNStates.paused))
 				{
-					//ann.state = ANNStates.training ;
+					ann.state = previousState ;
 					ann.repaint() ;
 				}					
 			}
@@ -69,6 +76,7 @@ public class MainANN extends JFrame
 				//RunTraining = !RunTraining ;
 				if (ann.state.equals(ANNStates.training))
 				{
+					previousState = ANNStates.training ;
 					ann.state = ANNStates.paused ;
 				}
 				else if (ann.state.equals(ANNStates.paused))
@@ -86,6 +94,7 @@ public class MainANN extends JFrame
 				//RunTraining = !RunTraining ;
 				if (ann.state.equals(ANNStates.testing))
 				{
+					previousState = ANNStates.testing ;
 					ann.state = ANNStates.paused ;
 				}
 				else if (ann.state.equals(ANNStates.paused))
@@ -115,6 +124,7 @@ public class MainANN extends JFrame
 	
 	public MainANN()
 	{
+		previousState = ANNStates.paused ;
 		ann = new ANN(frameSize) ;
 		this.setTitle("Rede neural") ;
 		this.setSize(frameSize) ;

@@ -5,13 +5,10 @@ import java.awt.Dimension ;
 import java.awt.Graphics ;
 import java.awt.Graphics2D ;
 import java.awt.Point ;
-import java.awt.event.ActionEvent ;
-import java.awt.event.ActionListener ;
 import java.util.ArrayList ;
 import java.util.List ;
 
 import javax.swing.JPanel ;
-import javax.swing.Timer ;
 
 import org.json.simple.JSONArray ;
 import org.json.simple.JSONObject ;
@@ -20,10 +17,9 @@ import graphics.DrawFunctions ;
 import utilities.Utg ;
 import utilities.Uts ;
 
-public class ANN extends JPanel implements ActionListener
+public class ANN extends JPanel
 {
 	private static final long serialVersionUID = 1L ;
-	private Timer timer ;
 	protected ANNStates state ;
 	
 	public static final Color[] COLOR_PALETTE = new Color[]
@@ -47,12 +43,12 @@ public class ANN extends JPanel implements ActionListener
 	private double[][] outputs ; 		// ANN current outputs
 	private double[][] neuronvalues ;	// value of each neuron (after applying the activation function)
 	private double[][][] weights ; 		// weights
-	private double[][][] dWeights ; 		// Delta weight, change in weight during the back propagation. Dw[Layer][Index of origin neuron][Index of desination neuron]
-	private double[][] biases ; 			// biases
+	private double[][][] dWeights ; 	// Delta weight, change in weight during the back propagation. Dw[Layer][Index of origin neuron][Index of desination neuron]
+	private double[][] biases ; 		// biases
 	private double error ; 				// current error
+	private double errortol ; 						// minimum error (stop if lower)
 	//private double accuracyChangeRate ; 			// current rate of change in accuracy
-	private double errortol ; 					// minimum error (stop if lower)
-	//private double accuracyChangeRateTolerance ; // minimum variation in accuracy between iterations (stop if lower)
+	//private double accuracyChangeRateTolerance ;	// minimum variation in accuracy between iterations (stop if lower)
 	private int[] multvec ; 						// product of the number of neurons in each layer, starts from output
 
 	protected boolean showANN ;
@@ -69,9 +65,6 @@ public class ANN extends JPanel implements ActionListener
 		this.setVisible(true) ;
 		
 		initialize() ;
-
-		timer = new Timer(0, this) ;
-		timer.start() ;
 	}
 	
 	public void initialize()
@@ -201,10 +194,7 @@ public class ANN extends JPanel implements ActionListener
 			 * less iterations
 			 */
 			
-			// record the error in the previous iteration
-			//double previousError = Utg.Round(Uts.calcErrorPerc(outputs, targets), 2) / 100 ;
-			
-			// perform the training itself
+			// performing the training itself
 			for (int point = 0 ; point <= input.length - 1 ; point += 1)
 			{
 				neuronvalues = Training.forwardPropagation(input[point], numberNeurons, weights, biases, applyBias) ;
@@ -213,7 +203,7 @@ public class ANN extends JPanel implements ActionListener
 				updateOutputs(point, numberLayers, neuronvalues[numberLayers - 1]) ;
 			}
 
-			// record the results of this training iteration
+			// recording the results of this training iteration
 			error = Utg.round(Uts.calcErrorPerc(outputs, targets), 2) / 100 ;
 			if (adaptativeLrate)
 			{
@@ -226,6 +216,7 @@ public class ANN extends JPanel implements ActionListener
 			repaint() ;
 		}
 
+		// performing the last iteration and saving results
 		if (currentIteration == maxNumberIterations)
 		{
 			for (int point = 0 ; point <= input.length - 1 ; point += 1)
@@ -234,8 +225,8 @@ public class ANN extends JPanel implements ActionListener
 				updateOutputs(point, numberLayers, neuronvalues[numberLayers - 1]) ;
 			}
 			error = Utg.round(Uts.calcErrorPerc(outputs, targets), 2) / 100 ;
-			double errorperc = 100 * error ;
-			Uts.PrintANN(neuronvalues, weights, dWeights, outputs, targets, errorperc) ;
+			double errorPerc = 100 * error ;
+			Uts.PrintANN(neuronvalues, weights, dWeights, outputs, targets, errorPerc) ;
 			Utg.saveTextFile("Error", saveError) ;
 		}
 	}
@@ -347,70 +338,5 @@ public class ANN extends JPanel implements ActionListener
 			}
 		}
 		drawStuff() ;
-	}
-	
-	/*private void initComponents()
-	{
-		this.addMouseListener(new MouseAdapter()
-		{
-			public void mousePressed(MouseEvent evt)
-			{
-
-			}
-
-			public void mouseReleased(MouseEvent evt)
-			{
-				// mouseReleased(evt) ;
-			}
-		}) ;
-		this.addMouseMotionListener(new MouseMotionAdapter()
-		{
-			public void mouseDragged(MouseEvent evt)
-			{
-				// mouseDragged(evt) ;
-			}
-		}) ;
-		this.addMouseWheelListener(new MouseWheelListener()
-		{
-			@Override
-			public void mouseWheelMoved(MouseWheelEvent evt)
-			{
-
-			}
-		}) ;
-		this.addKeyListener(new KeyListener()
-		{
-			@Override
-			public void keyPressed(KeyEvent evt)
-			{
-				int key = evt.getKeyCode() ;
-				System.out.println("Key pressed") ;
-				if (key == KeyEvent.VK_ESCAPE)
-				{
-
-				}
-			}
-
-			@Override
-			public void keyReleased(KeyEvent evt)
-			{
-
-			}
-
-			@Override
-			public void keyTyped(KeyEvent evt)
-			{
-
-			}
-		}) ;
-	}*/
-
-	@Override
-	public void actionPerformed(ActionEvent e)
-	{
-		if (e.getSource() == timer)
-		{
-			//repaint() ;
-		}
 	}
 }
