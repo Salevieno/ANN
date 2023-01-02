@@ -1,74 +1,71 @@
-package utilities;
+package utilities ;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Point;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.awt.Color ;
+import java.awt.Dimension ;
+import java.awt.Point ;
+import java.io.BufferedReader ;
+import java.io.BufferedWriter ;
+import java.io.FileNotFoundException ;
+import java.io.FileReader ;
+import java.io.FileWriter ;
+import java.io.IOException ;
+import java.math.BigDecimal ;
+import java.math.RoundingMode ;
+import java.util.ArrayList ;
+import java.util.Arrays ;
+import java.util.List ;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
+import javax.swing.ImageIcon ;
+import javax.swing.JButton ;
 
-import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.JSONParser ;
 
 public abstract class Utg 
 {
 	
-	public static void SaveTextFile(String filename, List<Double> Var)
+	public static void saveTextFile(String filename, List<Double> Var)
 	{
 		try
 		{	
-			FileWriter fileWriter = new FileWriter (filename + ".txt");
-			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter); 
+			FileWriter fileWriter = new FileWriter (filename + ".txt") ;
+			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter) ; 
 			
-			for (int i = 0; i <= Var.size() - 1; i += 1)
+			for (int i = 0 ; i <= Var.size() - 1 ; i += 1)
 			{
-				bufferedWriter.write(i + "	" + Var.get(i));
-				bufferedWriter.newLine();	
+				bufferedWriter.write(i + "	" + Var.get(i)) ;
+				bufferedWriter.newLine() ;	
 			}			
-			bufferedWriter.close();
+			bufferedWriter.close() ;
 		}		
 		catch(IOException ex) 
 		{
-            System.out.println("Error writing to file '" + filename + "'");
+            System.out.println("Error writing to file '" + filename + "'") ;
         }
 	}
 	
-	public static String[][] ReadcsvFile(String FileName)
+	public static String[][] readCSVFile(String FileName)
 	{
-		BufferedReader br = null;
-        String line = "";
-        String separator = ",";
-        List<List<String>> Input = new ArrayList<>();
+		BufferedReader br = null ;
+        String line = "" ;
+        String separator = "," ;
+        List<List<String>> Input = new ArrayList<>() ;
         try 
         {
-            br = new BufferedReader(new FileReader(FileName));
-            line = br.readLine();
+            br = new BufferedReader(new FileReader(FileName)) ;
+            line = br.readLine() ;
             while (line != null & !line.contains("_")) 
             {
-            	Input.add(Arrays.asList(line.split(separator)));
-            	line = br.readLine();
+            	Input.add(Arrays.asList(line.split(separator))) ;
+            	line = br.readLine() ;
             }
         } 
         catch (FileNotFoundException e) 
         {
-            e.printStackTrace();
+            e.printStackTrace() ;
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace() ;
         }
         finally
         {
@@ -76,75 +73,75 @@ public abstract class Utg
             {
                 try
                 {
-                    br.close();
+                    br.close() ;
                 }
                 catch (IOException e)
                 {
-                    e.printStackTrace();
+                    e.printStackTrace() ;
                 }
             }
         }
         
-        String[][] result = new String[Input.size()][];
-        for (int i = 0; i <= result.length - 1; i += 1)
+        String[][] result = new String[Input.size()][] ;
+        for (int i = 0 ; i <= result.length - 1 ; i += 1)
         {
-        	result[i] = new String[Input.get(i).size()];
-        	for (int j = 0; j <= result[i].length - 1; j += 1)
+        	result[i] = new String[Input.get(i).size()] ;
+        	for (int j = 0 ; j <= result[i].length - 1 ; j += 1)
         	{
-        		result[i][j] = Input.get(i).get(j);
+        		result[i][j] = Input.get(i).get(j) ;
         	}
         }
-        return result;
+        return result ;
 	}
 	
-	public static Object ReadJson(String filePath)
+	public static Object readJsonFile(String filePath)
 	{
-		JSONParser parser = new JSONParser();
+		JSONParser parser = new JSONParser() ;
         try
         {
-            Object jsonData = parser.parse(new FileReader(filePath));
+            Object jsonData = parser.parse(new FileReader(filePath)) ;
             return jsonData ;
         }
         catch(FileNotFoundException fe)
         {
-            fe.printStackTrace();
+            fe.printStackTrace() ;
             return null ;
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+            e.printStackTrace() ;
             return null ;
         }
 	}
 	
-	public static int[] CalcProdVec(int Nlayers, int[] Nneurons, double[][] target)
+	public static int[] calcProdVec(int Nlayers, int[] Nneurons, double[][] target)
 	{
-		int[] multvec = new int[Nlayers];
-		multvec[Nlayers - 1] = 1;
-		for (int i = Nlayers - 1; 1 <= i; i += -1)
+		int[] multvec = new int[Nlayers] ;
+		multvec[Nlayers - 1] = 1 ;
+		for (int i = Nlayers - 1 ; 1 <= i ; i += -1)
 		{
-			multvec[i - 1] = multvec[i]*Nneurons[i];
+			multvec[i - 1] = multvec[i]*Nneurons[i] ;
 		}
-		return multvec;
+		return multvec ;
 	}
 	
-	public static float Round(double num, int decimals)
+	public static float round(double num, int decimals)
 	{
-		return BigDecimal.valueOf(num).setScale(decimals, RoundingMode.HALF_EVEN).floatValue();
+		return BigDecimal.valueOf(num).setScale(decimals, RoundingMode.HALF_EVEN).floatValue() ;
 	}
 
 	public static JButton addButton(ImageIcon icon, int[] alignment, Dimension size, Color color)
 	{
-		JButton NewButton = new JButton();
-		NewButton.setIcon(icon);
-		NewButton.setVerticalAlignment(alignment[0]);
-		NewButton.setHorizontalAlignment(alignment[1]);
-		NewButton.setBackground(color);
-		NewButton.setPreferredSize(size);	
-		return NewButton;
+		JButton NewButton = new JButton() ;
+		NewButton.setIcon(icon) ;
+		NewButton.setVerticalAlignment(alignment[0]) ;
+		NewButton.setHorizontalAlignment(alignment[1]) ;
+		NewButton.setBackground(color) ;
+		NewButton.setPreferredSize(size) ;	
+		return NewButton ;
 	}
 	
-	public static Point OffsetFromPos(AlignmentPoints Alignment, int l, int h)
+	public static Point offsetFromPos(AlignmentPoints Alignment, int l, int h)
 	{
 		Point offset = new Point(0, 0) ;
 		switch (Alignment)
@@ -208,50 +205,39 @@ public abstract class Utg
 			
 		return offset ;
 	}
-
-	public static int TextL(String text, Font font, Graphics graphics)
-	{
-		FontMetrics metrics = graphics.getFontMetrics(font) ;
-		return (int) (metrics.stringWidth(text)) ;
-	}
 	
-	public static int TextH(int TextSize)
+	public static double[][] transpose(double[][] OriginalArray)
 	{
-		return (int)(0.8*TextSize);
-	}
-	
-	public static double[][] Transpose(double[][] OriginalArray)
-	{
-		double[][] NewArray = new double[OriginalArray[0].length][OriginalArray.length];
-		for (int i = 0; i <= NewArray.length - 1; i += 1)
+		double[][] NewArray = new double[OriginalArray[0].length][OriginalArray.length] ;
+		for (int i = 0 ; i <= NewArray.length - 1 ; i += 1)
 		{
-			for (int j = 0; j <= NewArray[i].length - 1; j += 1)
+			for (int j = 0 ; j <= NewArray[i].length - 1 ; j += 1)
 			{
-				NewArray[i][j] = OriginalArray[j][i];
+				NewArray[i][j] = OriginalArray[j][i] ;
 			}
 		}
-		return NewArray;
+		return NewArray ;
 	}
 
-	public static double[] VecMatrixProd(double[] vector, double[][] matrix)
+	public static double[] vectorMatrixProd(double[] vector, double[][] matrix)
 	{
 		if (vector.length != matrix[0].length)
 		{
-			System.out.println("Attempted to multiply matrices of different sizes at UtilGeral -> MatrixProd");
-			System.out.println("Vector size: " + vector.length + " Matrix size : " + matrix[0].length);
-			return null;
+			System.out.println("Attempted to multiply matrices of different sizes at UtilGeral -> MatrixProd") ;
+			System.out.println("Vector size: " + vector.length + " Matrix size : " + matrix[0].length) ;
+			return null ;
 		}
 		else
 		{
-			double product[] = new double[matrix.length];
-			for (int i = 0; i <= matrix.length - 1; i += 1) 
+			double product[] = new double[matrix.length] ;
+			for (int i = 0 ; i <= matrix.length - 1 ; i += 1) 
 			{
-				for (int j = 0; j <= vector.length - 1; j += 1) 
+				for (int j = 0 ; j <= vector.length - 1 ; j += 1) 
 				{
-					product[i] += vector[j] * matrix[i][j];
+					product[i] += vector[j] * matrix[i][j] ;
 				}
 			}		
-			return product;
+			return product ;
 		}
 	}
 	

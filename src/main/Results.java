@@ -1,12 +1,12 @@
-package main;
+package main ;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayList ;
+import java.util.List ;
 
 public abstract class Results
 {
-	//private double[][] output; // ANN current outputs
-	//private double error; // current error
+	//private double[][] output ; // ANN current outputs
+	//private double error ; // current error
 
 	private static List<Double> saveError = new ArrayList<>() ;	// record of the error that is saved in the output file
 	private static List<Double> plotError = new ArrayList<>() ;	// record of the error that is displayed graphically on the screen
@@ -28,7 +28,7 @@ public abstract class Results
 	{
 		if (currentIteration % rate == 0)
 		{
-			saveError.add(100 * error);
+			saveError.add(100 * error) ;
 		}
 	}
 }
